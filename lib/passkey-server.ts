@@ -4,31 +4,50 @@ import * as SimpleWebAuthnServer from '@simplewebauthn/server';
 import * as SimpleWebAuthnServerHelpers from '@simplewebauthn/server/helpers';
 import { AuthRateLimit } from './auth-rate-limit';
 
-const client = new Client();
-const serverEndpoint = process.env.APPWRITE_ENDPOINT || process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://cloud.appwrite.io/v1';
-const serverProject = process.env.APPWRITE_PROJECT || process.env.NEXT_PUBLIC_APPWRITE_PROJECT || '';
-const serverApiKey = process.env.APPWRITE_API || process.env.APPWRITE_API_KEY || '';
+const getClient = () => {
+  const client = new Client();
+  const serverEndpoint = process.env.APPWRITE_ENDPOINT || process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://cloud.appwrite.io/v1';
+  const serverProject = process.env.APPWRITE_PROJECT || process.env.NEXT_PUBLIC_APPWRITE_PROJECT || '';
+  const serverApiKey = process.env.APPWRITE_API || process.env.APPWRITE_API_KEY || '';
 
-client.setEndpoint(serverEndpoint);
-if (!serverProject) {
-  throw new Error('Missing APPWRITE_PROJECT or NEXT_PUBLIC_APPWRITE_PROJECT');
-}
-client.setProject(serverProject);
-if (!serverApiKey) {
-  throw new Error('Missing APPWRITE_API or APPWRITE_API_KEY');
-}
-client.setKey(serverApiKey);
+  client.setEndpoint(serverEndpoint);
+  if (serverProject) client.setProject(serverProject);
+  if (serverApiKey) client.setKey(serverApiKey);
 
-const users = new Users(client);
+  return client;
+};
+
+// Lazy initialize users service
+let _users: Users | null = null;
+const getUsers = () => {
+  if (!_users) {
+    const client = getClient();
+    if (!process.env.APPWRITE_PROJECT && !process.env.NEXT_PUBLIC_APPWRITE_PROJECT && process.env.NODE_ENV === 'production') {
+      console.warn('Warning: APPWRITE_PROJECT is missing');
+    }
+    _users = new Users(client);
+  }
+  return _users;
+};
 
 export class PasskeyServer {
-  private rateLimit: AuthRateLimit;
+  private rateLimit: AuthRateLimit | null = null;
 
-  constructor() {
-    this.rateLimit = new AuthRateLimit(users);
+  private get users() {
+    return getUsers();
   }
+
+  private getRateLimit() {
+    if (!this.rateLimit) {
+      this.rateLimit = new AuthRateLimit(this.users);
+    }
+    return this.rateLimit;
+  }
+
+  constructor() { }
+
   async getUserIfExists(email: string): Promise<any | null> {
-    const usersList = await users.list([Query.equal('email', email), Query.limit(1)]);
+    const usersList = await this.users.list([Query.equal('email', email), Query.limit(1)]);
     return (usersList as any).users?.[0] ?? null;
   }
 
@@ -54,15 +73,15 @@ export class PasskeyServer {
     const prefs = user.prefs || {};
     return Object.keys(prefs).some(key => key.startsWith('wallet'));
   }
-  
+
   async prepareUser(email: string) {
     // Find existing by email
-    const usersList = await users.list([Query.equal('email', email), Query.limit(1)]);
+    const usersList = await this.users.list([Query.equal('email', email), Query.limit(1)]);
     if ((usersList as any).users?.length > 0) {
       return (usersList as any).users[0];
     }
     // Create with Appwrite unique ID
-    return await users.create(ID.unique(), email);
+    return await this.users.create(ID.unique(), email);
   }
 
   async registerPasskey(
@@ -111,11 +130,11 @@ export class PasskeyServer {
     // Parse existing credentials and counters (JSON objects stored as strings)
     const credObj: Record<string, string> = credentialsStr ? (JSON.parse(credentialsStr) as Record<string, string>) : {};
     const counterObj: Record<string, number> = countersStr ? (JSON.parse(countersStr) as Record<string, number>) : {};
-    
+
     // Add new passkey
     credObj[passkeyData.id] = passkeyData.publicKey;
     counterObj[passkeyData.id] = passkeyData.counter;
-    
+
     // Initialize metadata for new passkey
     const metadataStr = (existingPrefs.passkey_metadata || '') as string;
     let metadataObj: Record<string, any> = metadataStr ? JSON.parse(metadataStr) : {};
@@ -126,17 +145,17 @@ export class PasskeyServer {
       lastUsedAt: null,
       status: 'active'
     };
-    
+
     // Serialize back to strings
     // Merge existing prefs to avoid overwriting unrelated keys (e.g., walletEth)
     const mergedPrefs = { ...(user.prefs || {}) } as Record<string, unknown>;
     mergedPrefs.passkey_credentials = JSON.stringify(credObj);
     mergedPrefs.passkey_counter = JSON.stringify(counterObj);
     mergedPrefs.passkey_metadata = JSON.stringify(metadataObj);
-    await users.updatePrefs(user.$id, mergedPrefs);
+    await this.users.updatePrefs(user.$id, mergedPrefs);
 
     // Create custom token
-    const token = await users.createToken(user.$id, 64, 60);
+    const token = await this.users.createToken(user.$id, 64, 60);
 
     return {
       success: true,
@@ -166,16 +185,16 @@ export class PasskeyServer {
     if (!credentialsStr) {
       throw new Error('No passkeys found for user');
     }
-    
+
     // Parse credentials and counters (JSON strings)
     const credObj: Record<string, string> = JSON.parse(credentialsStr) as Record<string, string>;
     const counterObj: Record<string, number> = countersStr ? (JSON.parse(countersStr) as Record<string, number>) : {};
-    
+
     // Find matching credential
     const credentialId = assertion.rawId || assertion.id;
     const publicKey = credObj[credentialId];
     const counter = counterObj[credentialId] || 0;
-    
+
     if (!publicKey) {
       throw new Error('Unknown credential');
     }
@@ -208,7 +227,7 @@ export class PasskeyServer {
     // Update counter in auth helper (guard if missing)
     const authInfo: any = (verification as any).authenticationInfo;
     const newCounter = (authInfo && typeof authInfo.newCounter === 'number') ? authInfo.newCounter : counter;
-    
+
     // ⭐ CRITICAL: Detect cloned passkey (counter regression)
     if (newCounter < counter) {
       // Counter went backwards = passkey was cloned and used elsewhere!
@@ -216,12 +235,12 @@ export class PasskeyServer {
       await this.markPasskeyCompromised(email, credentialId);
       throw new Error('Potential passkey compromise detected. Counter regression. This credential has been used elsewhere. Please reset your account.');
     }
-    
+
     counterObj[credentialId] = newCounter;
     // Merge existing prefs to avoid dropping other keys (e.g., passkey_credentials)
     const mergedPrefs = { ...(user.prefs || {}) } as Record<string, unknown>;
     mergedPrefs.passkey_counter = JSON.stringify(counterObj);
-    
+
     // ⭐ NEW: Store counter history for forensics (doesn't affect backwards compatibility)
     const counterHistoryStr = (user.prefs?.passkey_counter_history || '') as string;
     let counterHistory: Record<string, Array<{ timestamp: number; counter: number }>> = {};
@@ -232,23 +251,23 @@ export class PasskeyServer {
         counterHistory = {};
       }
     }
-    
+
     if (!counterHistory[credentialId]) {
       counterHistory[credentialId] = [];
     }
-    
+
     counterHistory[credentialId].push({
       timestamp: Date.now(),
       counter: newCounter,
     });
-    
+
     // Keep only last 50 counter entries per credential (prevent unbounded growth)
     if (counterHistory[credentialId].length > 50) {
       counterHistory[credentialId] = counterHistory[credentialId].slice(-50);
     }
-    
+
     mergedPrefs.passkey_counter_history = JSON.stringify(counterHistory);
-    
+
     // Update lastUsedAt in metadata
     const metadataStr2 = (user.prefs?.passkey_metadata || '') as string;
     let metadata: Record<string, any> = metadataStr2 ? JSON.parse(metadataStr2) : {};
@@ -264,11 +283,11 @@ export class PasskeyServer {
       metadata[credentialId].lastUsedAt = Date.now();
     }
     mergedPrefs.passkey_metadata = JSON.stringify(metadata);
-    
-    await users.updatePrefs(user.$id, mergedPrefs);
+
+    await this.users.updatePrefs(user.$id, mergedPrefs);
 
     // Create custom token
-    const token = await users.createToken(user.$id, 64, 60);
+    const token = await this.users.createToken(user.$id, 64, 60);
 
     return {
       success: true,
@@ -301,13 +320,13 @@ export class PasskeyServer {
    */
   private formatTimestamp(timestamp: number): string {
     const date = new Date(timestamp);
-    return date.toLocaleString('en-US', { 
-      year: 'numeric', 
-      month: '2-digit', 
-      day: '2-digit', 
-      hour: '2-digit', 
-      minute: '2-digit', 
-      second: '2-digit' 
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
     });
   }
 
@@ -412,7 +431,7 @@ export class PasskeyServer {
 
     const mergedPrefs = { ...(user.prefs || {}) } as Record<string, unknown>;
     mergedPrefs.passkey_metadata = JSON.stringify(metadata);
-    await users.updatePrefs(user.$id, mergedPrefs);
+    await this.users.updatePrefs(user.$id, mergedPrefs);
   }
 
   /**
@@ -434,7 +453,7 @@ export class PasskeyServer {
 
     const mergedPrefs = { ...(user.prefs || {}) } as Record<string, unknown>;
     mergedPrefs.passkey_metadata = JSON.stringify(metadata);
-    await users.updatePrefs(user.$id, mergedPrefs);
+    await this.users.updatePrefs(user.$id, mergedPrefs);
   }
 
   /**
@@ -456,7 +475,7 @@ export class PasskeyServer {
 
     const mergedPrefs = { ...(user.prefs || {}) } as Record<string, unknown>;
     mergedPrefs.passkey_metadata = JSON.stringify(metadata);
-    await users.updatePrefs(user.$id, mergedPrefs);
+    await this.users.updatePrefs(user.$id, mergedPrefs);
   }
 
   /**
@@ -490,7 +509,7 @@ export class PasskeyServer {
     mergedPrefs.passkey_credentials = JSON.stringify(credObj);
     mergedPrefs.passkey_counter = JSON.stringify(counterObj);
     mergedPrefs.passkey_metadata = JSON.stringify(metadata);
-    await users.updatePrefs(user.$id, mergedPrefs);
+    await this.users.updatePrefs(user.$id, mergedPrefs);
   }
 
   /**
@@ -515,7 +534,7 @@ export class PasskeyServer {
 
     const mergedPrefs = { ...(user.prefs || {}) } as Record<string, unknown>;
     mergedPrefs.passkey_metadata = JSON.stringify(metadata);
-    await users.updatePrefs(user.$id, mergedPrefs);
+    await this.users.updatePrefs(user.$id, mergedPrefs);
   }
 
   /**
@@ -531,7 +550,7 @@ export class PasskeyServer {
 
     const mergedPrefs = { ...(user.prefs || {}) } as Record<string, unknown>;
     mergedPrefs.passkey_metadata = JSON.stringify(metadata);
-    await users.updatePrefs(user.$id, mergedPrefs);
+    await this.users.updatePrefs(user.$id, mergedPrefs);
   }
 
   /**
@@ -556,7 +575,7 @@ export class PasskeyServer {
       };
     }
 
-    const result = await this.rateLimit.checkRateLimit(user, 'passkey');
+    const result = await this.getRateLimit().checkRateLimit(user, 'passkey');
     return {
       allowed: result.allowed,
       status: result.status,
@@ -572,7 +591,7 @@ export class PasskeyServer {
   async recordAuthAttempt(email: string, success: boolean): Promise<void> {
     const user = await this.getUserIfExists(email);
     if (user) {
-      await this.rateLimit.recordAuthAttempt(user, 'passkey', success);
+      await this.getRateLimit().recordAuthAttempt(user, 'passkey', success);
     }
   }
 
@@ -582,7 +601,7 @@ export class PasskeyServer {
   async resetAuthRateLimit(email: string): Promise<void> {
     const user = await this.getUserIfExists(email);
     if (user) {
-      await this.rateLimit.resetRateLimit(user);
+      await this.getRateLimit().resetRateLimit(user);
     }
   }
 }
