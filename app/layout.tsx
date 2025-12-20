@@ -1,20 +1,30 @@
-import type { Metadata } from 'next';
+import { Inter, Outfit } from "next/font/google";
 import { Providers } from '@/app/providers';
 
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const outfit = Outfit({
+  subsets: ["latin"],
+  variable: "--font-outfit",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: 'Appwrite Passkey Demo',
-  description: 'Sophisticated passkey authentication and management demonstration',
+  title: 'Whisperr ID - Secure Identity Hub',
+  description: 'Manage your Whisperr identity and passkeys with elite security.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <head>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-      </head>
-      <body>
+    <html lang="en" className={`${inter.variable} ${outfit.variable}`}>
+      <body className="antialiased">
         <Providers>{children}</Providers>
       </body>
     </html>
   );
 }
+
