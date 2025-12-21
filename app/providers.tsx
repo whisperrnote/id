@@ -2,24 +2,24 @@
 
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import { SourceProvider } from '@/lib/source-context';
-import { ThemeProvider as AppThemeProvider } from '@/lib/theme-context';
+import { ThemeProvider as AppThemeProvider, useTheme } from '@/lib/theme-context';
 
-const theme = createTheme({
+const getDesignTokens = (isDark: boolean): any => ({
   palette: {
-    mode: 'dark',
+    mode: isDark ? 'dark' : 'light',
     primary: {
       main: '#FFC107', // Tungsten Sun
       contrastText: '#1B1C20',
     },
     background: {
-      default: '#1B1C20', // The Void
-      paper: '#2D2421',   // The Matter
+      default: isDark ? '#1B1C20' : '#FAF8F6', // Void / Solar
+      paper: isDark ? '#2D2421' : '#EADDD3',   // Matter / Sand
     },
     text: {
-      primary: '#FAF8F6',
-      secondary: '#A69080',
+      primary: isDark ? '#FAF8F6' : '#1B1C20',
+      secondary: isDark ? '#A69080' : '#5E4E42',
     },
-    divider: '#3D3D3D',
+    divider: isDark ? '#3D3D3D' : 'rgba(26, 35, 126, 0.1)',
   },
   typography: {
     fontFamily: 'var(--font-inter), "Inter", sans-serif',
@@ -46,10 +46,14 @@ const theme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: {
-          boxShadow: '4px 4px 0 rgba(26, 35, 126, 0.8)',
+          boxShadow: isDark
+            ? '4px 4px 0 rgba(26, 35, 126, 0.8)'
+            : '4px 4px 0 rgba(26, 35, 126, 0.2)',
           '&:hover': {
             transform: 'translate(-2px, -2px)',
-            boxShadow: '6px 6px 0 rgba(26, 35, 126, 0.9)',
+            boxShadow: isDark
+              ? '6px 6px 0 rgba(26, 35, 126, 0.9)'
+              : '6px 6px 0 rgba(26, 35, 126, 0.3)',
           },
         },
       },
@@ -57,22 +61,35 @@ const theme = createTheme({
     MuiPaper: {
       styleOverrides: {
         root: {
-          boxShadow: '8px 12px 20px rgba(26, 35, 126, 0.4)',
+          boxShadow: isDark
+            ? '8px 12px 20px rgba(26, 35, 126, 0.4)'
+            : '4px 8px 16px rgba(26, 35, 126, 0.15)',
         },
       },
     },
   },
 });
 
-export function Providers({ children }: { children: React.ReactNode }) {
+function MuiThemeWrapper({ children }: { children: React.ReactNode }) {
+  const { isDark } = useTheme();
+  const theme = createTheme(getDesignTokens(isDark));
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <AppThemeProvider>
+      {children}
+    </ThemeProvider>
+  );
+}
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <AppThemeProvider>
+      <MuiThemeWrapper>
         <SourceProvider>
           {children}
         </SourceProvider>
-      </AppThemeProvider>
-    </ThemeProvider>
+      </MuiThemeWrapper>
+    </AppThemeProvider>
   );
 }
