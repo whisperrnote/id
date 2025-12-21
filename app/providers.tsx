@@ -6,37 +6,61 @@ import { ThemeProvider as AppThemeProvider } from '@/lib/theme-context';
 
 const theme = createTheme({
   palette: {
-    mode: 'dark', // Identity hub looks better in dark mode
+    mode: 'dark',
     primary: {
-      main: '#FFC700',
-      contrastText: '#1a1a1a',
-    },
-    secondary: {
-      main: '#6B5B4F',
+      main: '#FFC107', // Tungsten Sun
+      contrastText: '#1B1C20',
     },
     background: {
-      default: '#0F0F0F',
-      paper: '#1A1A1A',
+      default: '#1B1C20', // The Void
+      paper: '#2D2421',   // The Matter
     },
     text: {
       primary: '#FAF8F6',
       secondary: '#A69080',
     },
+    divider: '#3D3D3D',
   },
   typography: {
-    fontFamily: 'var(--font-inter), "Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+    fontFamily: 'var(--font-inter), "Inter", sans-serif',
     h1: {
-      fontFamily: 'var(--font-outfit), "Outfit", sans-serif',
-      fontWeight: 800
+      fontFamily: 'var(--font-mono), monospace',
+      fontWeight: 800,
+      letterSpacing: '-0.02em',
     },
     h2: {
-      fontFamily: 'var(--font-outfit), "Outfit", sans-serif',
-      fontWeight: 700
+      fontFamily: 'var(--font-mono), monospace',
+      fontWeight: 700,
     },
-    button: { fontWeight: 600, textTransform: 'none' },
+    button: {
+      fontFamily: 'var(--font-mono), monospace',
+      fontWeight: 700,
+      textTransform: 'uppercase',
+      letterSpacing: '0.05em',
+    },
   },
   shape: {
-    borderRadius: 12,
+    borderRadius: 4,
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          boxShadow: '4px 4px 0 rgba(26, 35, 126, 0.8)',
+          '&:hover': {
+            transform: 'translate(-2px, -2px)',
+            boxShadow: '6px 6px 0 rgba(26, 35, 126, 0.9)',
+          },
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          boxShadow: '8px 12px 20px rgba(26, 35, 126, 0.4)',
+        },
+      },
+    },
   },
 });
 
