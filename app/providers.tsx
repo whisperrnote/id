@@ -74,6 +74,12 @@ function MuiThemeWrapper({ children }: { children: React.ReactNode }) {
   const { isDark } = useTheme();
   const theme = createTheme(getDesignTokens(isDark));
 
+  React.useEffect(() => {
+    document.documentElement.classList.remove('light', 'dark');
+    document.documentElement.classList.add(isDark ? 'dark' : 'light');
+    localStorage.setItem('id-theme-mode', isDark ? 'dark' : 'light');
+  }, [isDark]);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
