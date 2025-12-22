@@ -40,20 +40,28 @@ const getDesignTokens = (isDark: boolean): any => ({
     },
   },
   shape: {
-    borderRadius: 4,
+    borderRadius: 12,
   },
   components: {
     MuiButton: {
       styleOverrides: {
         root: {
+          borderRadius: 12,
+          padding: '12px 24px',
+          fontWeight: 800,
+          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
           boxShadow: isDark
-            ? '4px 4px 0 rgba(26, 35, 126, 0.8)'
-            : '4px 4px 0 rgba(26, 35, 126, 0.2)',
+            ? '0px 2px 4px rgba(0, 0, 0, 0.4), 0px 8px 16px rgba(26, 35, 126, 0.2), inset 0px 1px 0px rgba(255, 193, 7, 0.2)'
+            : '0px 2px 4px rgba(26, 35, 126, 0.2), 0px 8px 16px rgba(26, 35, 126, 0.1), inset 0px 1px 0px rgba(255, 193, 7, 0.2)',
           '&:hover': {
-            transform: 'translate(-2px, -2px)',
+            transform: 'translateY(-2px)',
             boxShadow: isDark
-              ? '6px 6px 0 rgba(26, 35, 126, 0.9)'
-              : '6px 6px 0 rgba(26, 35, 126, 0.3)',
+              ? '0px 4px 8px rgba(0, 0, 0, 0.6), 0px 12px 24px rgba(26, 35, 126, 0.4), inset 0px 1px 0px rgba(255, 193, 7, 0.2)'
+              : '0px 4px 8px rgba(26, 35, 126, 0.4), 0px 12px 24px rgba(26, 35, 126, 0.2), inset 0px 1px 0px rgba(255, 193, 7, 0.2)',
+          },
+          '&:active': {
+            transform: 'translateY(0)',
+            boxShadow: 'none',
           },
         },
       },
@@ -61,9 +69,10 @@ const getDesignTokens = (isDark: boolean): any => ({
     MuiPaper: {
       styleOverrides: {
         root: {
+          borderRadius: 24,
           boxShadow: isDark
-            ? '8px 12px 20px rgba(26, 35, 126, 0.4)'
-            : '4px 8px 16px rgba(26, 35, 126, 0.15)',
+            ? '0px 2px 4px rgba(0, 0, 0, 0.4), 0px 8px 16px rgba(26, 35, 126, 0.2), inset 0px 1px 0px rgba(255, 193, 7, 0.2)'
+            : '0px 2px 4px rgba(26, 35, 126, 0.2), 0px 8px 16px rgba(26, 35, 126, 0.1), inset 0px 1px 0px rgba(255, 193, 7, 0.2)',
         },
       },
     },
