@@ -216,8 +216,17 @@ function LoginContent() {
     setLoading(true);
     setMessage(null);
     try {
-      // TODO: Implement password auth endpoint
-      setMessage('Password login not yet implemented');
+      await safeDeleteCurrentSession();
+      const session = await account.createEmailPasswordSession(email, password);
+      const user = await account.get();
+      if (session && user) {
+        notifyOpenerAuthSuccess({ userId: user.$id });
+        const source = searchParams.get('source');
+        if (source) {
+          const redirectUrl = source.startsWith('http://') || source.startsWith('https://') ? source : `https://${source}`;
+          window.location.href = redirectUrl;
+        }
+      }
     } catch (err: any) {
       setMessage(err.message || 'Login failed');
     } finally {
