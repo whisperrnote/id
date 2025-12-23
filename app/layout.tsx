@@ -15,8 +15,8 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Whisperr ID - Sovereign Identity Hub',
-  description: 'The root of your digital sovereignty. Manage your secure identity and passkeys with elite technical honesty.',
+  title: 'Whisperr ID - Premium Identity Management',
+  description: 'The root of your digital identity. Manage your secure access and passkeys with professional reliability.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

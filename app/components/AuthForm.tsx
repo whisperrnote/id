@@ -135,8 +135,8 @@ export default function AuthForm({
               </Typography>
               <Typography variant="caption" component="div" sx={{ mt: 0.5 }}>
                 {mode === 'register'
-                  ? 'Your browser will generate a cryptographic credential stored securely on your device. This credential is used for future authentication.'
-                  : 'Your device will verify ownership of your passkey through biometric or PIN authentication, creating a signed challenge response.'}
+                  ? 'Your browser will generate a secure digital key stored safely on your device. This key is used for future authentication.'
+                  : 'Your device will verify ownership of your passkey through biometric or PIN authentication, creating a secure verification.'}
               </Typography>
             </Alert>
 
