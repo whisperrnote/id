@@ -6,62 +6,80 @@ import { ThemeProvider as AppThemeProvider, useTheme } from '@/lib/theme-context
 
 const getDesignTokens = (isDark: boolean): any => ({
   palette: {
-    mode: isDark ? 'dark' : 'light',
+    mode: 'dark',
     primary: {
-      main: '#FFC107', // Tungsten Sun
-      contrastText: '#1B1C20',
+      main: '#00F0FF', // Electric Teal
+      contrastText: '#000000',
+    },
+    secondary: {
+      main: '#F2F2F2', // Titanium
     },
     background: {
-      default: isDark ? '#1B1C20' : '#FAF8F6', // Void / Solar
-      paper: isDark ? '#2D2421' : '#EADDD3',   // Matter / Sand
+      default: '#000000', // The Void
+      paper: '#0A0A0A',   // The Surface
     },
     text: {
-      primary: isDark ? '#FAF8F6' : '#1B1C20',
-      secondary: isDark ? '#A69080' : '#5E4E42',
+      primary: '#F2F2F2',   // Titanium
+      secondary: '#A1A1AA', // Gunmetal
+      disabled: '#404040',  // Carbon
     },
-    divider: isDark ? '#3D3D3D' : 'rgba(26, 35, 126, 0.1)',
+    divider: '#222222', // Subtle Border
   },
   typography: {
-    fontFamily: 'var(--font-inter), "Inter", sans-serif',
+    fontFamily: '"Satoshi", "Inter", sans-serif',
     h1: {
-      fontFamily: 'var(--font-mono), monospace',
-      fontWeight: 800,
+      fontFamily: '"Space Grotesk", sans-serif',
+      fontSize: '32px',
+      fontWeight: 700,
       letterSpacing: '-0.02em',
+      color: '#F2F2F2',
     },
     h2: {
-      fontFamily: 'var(--font-mono), monospace',
-      fontWeight: 700,
+      fontFamily: '"Space Grotesk", sans-serif',
+      fontSize: '24px',
+      fontWeight: 600,
+      letterSpacing: '-0.02em',
     },
     button: {
-      fontFamily: 'var(--font-mono), monospace',
-      fontWeight: 700,
-      textTransform: 'uppercase',
-      letterSpacing: '0.05em',
+      fontFamily: '"Space Grotesk", sans-serif',
+      textTransform: 'none',
+      fontWeight: 600,
     },
   },
   shape: {
     borderRadius: 12,
   },
   components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          backgroundColor: '#000000',
+          color: '#F2F2F2',
+        },
+      },
+    },
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: 12,
-          padding: '12px 24px',
-          fontWeight: 800,
+          borderRadius: 8,
+          padding: '8px 16px',
           transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-          boxShadow: isDark
-            ? '0px 2px 4px rgba(0, 0, 0, 0.4), 0px 8px 16px rgba(26, 35, 126, 0.2), inset 0px 1px 0px rgba(255, 193, 7, 0.2)'
-            : '0px 2px 4px rgba(26, 35, 126, 0.2), 0px 8px 16px rgba(26, 35, 126, 0.1), inset 0px 1px 0px rgba(255, 193, 7, 0.2)',
+          border: '1px solid #222222',
           '&:hover': {
-            transform: 'translateY(-2px)',
-            boxShadow: isDark
-              ? '0px 4px 8px rgba(0, 0, 0, 0.6), 0px 12px 24px rgba(26, 35, 126, 0.4), inset 0px 1px 0px rgba(255, 193, 7, 0.2)'
-              : '0px 4px 8px rgba(26, 35, 126, 0.4), 0px 12px 24px rgba(26, 35, 126, 0.2), inset 0px 1px 0px rgba(255, 193, 7, 0.2)',
+            borderColor: '#404040',
+            backgroundColor: 'rgba(255, 255, 255, 0.05)',
           },
           '&:active': {
-            transform: 'translateY(0)',
-            boxShadow: 'none',
+            transform: 'scale(0.98)',
+          },
+        },
+        containedPrimary: {
+          backgroundColor: '#00F0FF',
+          color: '#000000',
+          border: 'none',
+          '&:hover': {
+            backgroundColor: 'rgba(0, 240, 255, 0.8)',
+            boxShadow: '0 0 15px rgba(0, 240, 255, 0.3)',
           },
         },
       },
@@ -69,10 +87,9 @@ const getDesignTokens = (isDark: boolean): any => ({
     MuiPaper: {
       styleOverrides: {
         root: {
-          borderRadius: 24,
-          boxShadow: isDark
-            ? '0px 2px 4px rgba(0, 0, 0, 0.4), 0px 8px 16px rgba(26, 35, 126, 0.2), inset 0px 1px 0px rgba(255, 193, 7, 0.2)'
-            : '0px 2px 4px rgba(26, 35, 126, 0.2), 0px 8px 16px rgba(26, 35, 126, 0.1), inset 0px 1px 0px rgba(255, 193, 7, 0.2)',
+          backgroundColor: '#0A0A0A',
+          backgroundImage: 'none',
+          border: '1px solid #222222',
         },
       },
     },
