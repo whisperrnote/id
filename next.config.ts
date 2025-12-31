@@ -7,6 +7,14 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  experimental: {
+    optimizePackageImports: [
+      '@mui/material',
+      '@mui/icons-material',
+      'lodash',
+      'date-fns',
+    ],
+  },
   async headers() {
     return [
       {
