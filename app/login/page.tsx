@@ -40,7 +40,7 @@ function publicKeyCredentialToJSON(pubKeyCred: unknown): unknown {
   if (pubKeyCred && typeof pubKeyCred === 'object') {
     const obj: Record<string, unknown> = {};
     const cred = pubKeyCred as Record<string, unknown>;
-    
+
     for (const key in cred) {
       try {
         const val = cred[key];
@@ -77,7 +77,7 @@ function LoginContent() {
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
   const { source, setSource, getBackUrl } = useSource();
   const hasNotifiedRef = useRef(false);
-  
+
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -90,7 +90,9 @@ function LoginContent() {
   const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
   const [authMethod, setAuthMethod] = useState(0);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
-  
+  const [isSuccess, setIsSuccess] = useState(false);
+
+
   const appName = process.env.NEXT_PUBLIC_APP_NAME || 'auth';
 
   const notifyOpenerAuthSuccess = useCallback((payload: Record<string, unknown> = {}) => {
@@ -114,13 +116,17 @@ function LoginContent() {
         const user = await checkSession();
         if (user) {
           notifyOpenerAuthSuccess({ userId: user.$id });
-          // User is already logged in, only redirect if source is specified
-          if (source) {
+          // User is already logged in
+          const source = searchParams.get('source');
+          if (source && !window.opener) {
             const redirectUrl = source.startsWith('http://') || source.startsWith('https://') ? source : `https://${source}`;
             router.replace(redirectUrl);
+          } else {
+            setIsSuccess(true);
           }
           return;
         }
+
       } catch (error) {
         // Session check failed, allow page to load for retry
         console.error('Session check error:', error);
@@ -172,7 +178,7 @@ function LoginContent() {
     setMessage(null);
     try {
       await safeDeleteCurrentSession();
-      
+
       const source = searchParams.get('source');
       const success = source ? `${window.location.origin}/?source=${encodeURIComponent(source)}` : `${window.location.origin}/`;
       const failure = `${window.location.origin}/login?error=oauth_failed`;
@@ -222,11 +228,14 @@ function LoginContent() {
       if (session && user) {
         notifyOpenerAuthSuccess({ userId: user.$id });
         const source = searchParams.get('source');
-        if (source) {
+        if (source && !window.opener) {
           const redirectUrl = source.startsWith('http://') || source.startsWith('https://') ? source : `https://${source}`;
           window.location.href = redirectUrl;
+        } else {
+          setIsSuccess(true);
         }
       }
+
     } catch (err: any) {
       setMessage(err.message || 'Login failed');
     } finally {
@@ -248,8 +257,8 @@ function LoginContent() {
         throw new Error('MetaMask not installed. Please install MetaMask.');
       }
 
-      const accounts = await window.ethereum.request({ 
-        method: 'eth_requestAccounts' 
+      const accounts = await window.ethereum.request({
+        method: 'eth_requestAccounts'
       });
       const address = accounts[0];
 
@@ -278,10 +287,12 @@ function LoginContent() {
       notifyOpenerAuthSuccess({ userId: response.userId || address });
 
       const backUrl = getBackUrl();
-      if (backUrl) {
-        router.push(backUrl);
+      if (backUrl && !window.opener) {
+        window.location.href = backUrl;
+      } else {
+        setIsSuccess(true);
       }
-      router.refresh();
+
     } catch (error: any) {
       setMessage(error.message || 'Wallet authentication failed');
     } finally {
@@ -295,12 +306,12 @@ function LoginContent() {
       setMessage('WebAuthn is not supported in this browser');
       return;
     }
-    
+
     const urlSource = searchParams.get('source');
     if (urlSource && !source) {
       setSource(urlSource);
     }
-    
+
     setLoading(true);
     try {
       const optRes = await fetch('/api/webauthn/auth/options', {
@@ -365,10 +376,13 @@ function LoginContent() {
               await safeCreateSession(verifyJson.token.userId || email, verifyJson.token.secret);
               notifyOpenerAuthSuccess({ userId: verifyJson.token.userId || email });
               const backUrl = getBackUrl();
-              if (backUrl) {
-                router.replace(backUrl);
+              if (backUrl && !window.opener) {
+                window.location.href = backUrl;
+              } else {
+                setIsSuccess(true);
               }
               return;
+
             }
             setMessage('Sign-in verified. No token returned.');
             return;
@@ -429,10 +443,13 @@ function LoginContent() {
         await safeCreateSession(regVerifyJson.token.userId || email, regVerifyJson.token.secret);
         notifyOpenerAuthSuccess({ userId: regVerifyJson.token.userId || email });
         const backUrl = getBackUrl();
-        if (backUrl) {
-          router.replace(backUrl);
+        if (backUrl && !window.opener) {
+          window.location.href = backUrl;
+        } else {
+          setIsSuccess(true);
         }
         return;
+
       }
       setMessage('Registration successful. You can now sign in.');
     } catch (err) {
@@ -451,7 +468,73 @@ function LoginContent() {
     );
   }
 
+  if (isSuccess) {
+    return (
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'rgba(0, 0, 0, 0.5)',
+          backdropFilter: 'blur(4px)',
+          p: 2,
+        }}
+      >
+        <Box
+          sx={{
+            width: '100%',
+            maxWidth: 448,
+            borderRadius: '1rem',
+            backgroundColor: dynamicColors.secondary,
+            p: 6,
+            textAlign: 'center',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8)',
+          }}
+        >
+          <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
+            <Box sx={{ width: 64, height: 64, borderRadius: '50%', backgroundColor: dynamicColors.primary, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <VpnKey sx={{ color: dynamicColors.secondary, fontSize: '2rem' }} />
+            </Box>
+          </Box>
+          <Typography variant="h4" sx={{ color: 'white', fontWeight: 900, mb: 2 }}>
+            Authenticated
+          </Typography>
+          <Typography sx={{ color: dynamicColors.foreground, mb: 4 }}>
+            Successfully signed in to {appName}. You can now return to the app.
+          </Typography>
+          <Button
+            variant="contained"
+            fullWidth
+            onClick={() => {
+              if (window.opener) {
+                window.close();
+              } else {
+                const source = searchParams.get('source');
+                const redirectUrl = source ? (source.startsWith('http') ? source : `https://${source}`) : '/';
+                window.location.href = redirectUrl;
+              }
+            }}
+            sx={{
+              height: 56,
+              borderRadius: '0.75rem',
+              backgroundColor: dynamicColors.primary,
+              color: dynamicColors.secondary,
+              fontWeight: 700,
+              textTransform: 'none',
+              fontSize: '1.1rem',
+              '&:hover': { backgroundColor: dynamicColors.primary, opacity: 0.9 },
+            }}
+          >
+            {window.opener ? 'Close Window' : 'Back to App'}
+          </Button>
+        </Box>
+      </Box>
+    );
+  }
+
   return (
+
     <Box
       sx={{
         minHeight: '100vh',
@@ -868,7 +951,7 @@ function LoginContent() {
                   {/* Verify OTP Button */}
                   <Box sx={{ width: '100%' }}>
                     <Button
-                      onClick={() => {}}
+                      onClick={() => { }}
                       disabled={otp.length !== 6 || loading}
                       fullWidth
                       sx={{

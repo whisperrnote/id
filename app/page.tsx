@@ -42,6 +42,14 @@ function HomeContent() {
           router.replace(redirectUrl);
           return;
         }
+
+        if (!userData) {
+          // If not logged in, go to login page
+          const loginUrl = source ? `/login?source=${encodeURIComponent(source)}` : '/login';
+          router.replace(loginUrl);
+          return;
+        }
+
       } catch (error) {
         console.error('IDM auth check failed:', error);
       } finally {
@@ -83,11 +91,12 @@ function HomeContent() {
           p: 4,
           borderRadius: '1rem',
           backgroundColor: 'rgba(255, 255, 255, 0.03)',
-          border: `1px solid ${colors.border}`,
+          border: '1px solid rgba(255, 255, 255, 0.1)',
         }}
+
       >
         <Typography variant="h4" sx={{ color: dynamicColors.primary, mb: 2, fontWeight: 700 }}>
-           Authentication finished
+          Authentication finished
         </Typography>
         <Typography sx={{ color: dynamicColors.foreground, mb: 1.5 }}>
           You can close this window or tab now and return to the application.
