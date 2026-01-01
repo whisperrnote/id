@@ -7,11 +7,12 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  compress: true,
   experimental: {
     optimizePackageImports: [
       '@mui/material',
       '@mui/icons-material',
-      'lodash',
+      'lodash-es',
       'date-fns',
     ],
   },

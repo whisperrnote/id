@@ -22,6 +22,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${mono.variable}`}>
+      <head>
+        <link rel="preconnect" href="https://fra.cloud.appwrite.io" />
+      </head>
       <body className="antialiased">
         <Providers>{children}</Providers>
       </body>
