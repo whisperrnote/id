@@ -238,49 +238,6 @@ export default function PreferencesManager({ onSave }: PreferencesManagerProps) 
 
         <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.1)' }} />
 
-        {/* Display Settings */}
-        <Box>
-          <Typography sx={{ fontSize: '1.125rem', fontWeight: 600, mb: 2, color: 'white' }}>
-            Display Preferences
-          </Typography>
-          <Stack spacing={2}>
-            <Box>
-              <Typography sx={{ fontSize: '0.875rem', color: dynamicColors.foreground, mb: 1 }}>
-                Theme
-              </Typography>
-              <Select
-                value={prefs.theme || 'system'}
-                onChange={(e) => handleThemeChange(e.target.value as 'light' | 'dark' | 'system')}
-                sx={{
-                  backgroundColor: dynamicColors.secondary,
-                  color: 'white',
-                  borderRadius: '0.5rem',
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: 'rgba(255, 255, 255, 0.2)',
-                  },
-                  '&:hover .MuiOutlinedInput-notchedOutline': {
-                    borderColor: 'rgba(255, 255, 255, 0.3)',
-                  },
-                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                    borderColor: dynamicColors.primary,
-                  },
-                  '& .MuiSvgIcon-root': {
-                    color: dynamicColors.primary,
-                  },
-                }}
-              >
-                {THEMES.map((t) => (
-                  <MenuItem key={t.value} value={t.value}>
-                    {t.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </Box>
-          </Stack>
-        </Box>
-
-        <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.1)' }} />
-
         {/* Notification Settings */}
         <Box>
           <Typography sx={{ fontSize: '1.125rem', fontWeight: 600, mb: 2, color: 'white' }}>
