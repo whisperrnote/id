@@ -472,7 +472,9 @@ function SettingsContent() {
               
               {user.lastUsernameEdit && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 1, ml: 1 }}>
-                  <InfoOutlined sx={{ fontSize: '0.875rem', color: dynamicColors.foreground }} />
+                  <Tooltip title="This is when you last updated your public name." arrow>
+                    <InfoOutlined sx={{ fontSize: '0.875rem', color: dynamicColors.foreground, cursor: 'help' }} />
+                  </Tooltip>
                   <Typography sx={{ fontSize: '0.75rem', color: dynamicColors.foreground }}>
                     Last edited on {new Date(user.lastUsernameEdit).toLocaleDateString()} at {new Date(user.lastUsernameEdit).toLocaleTimeString()}
                   </Typography>

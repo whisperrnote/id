@@ -104,7 +104,7 @@ export default function EditUsernameModal({
             label="Username"
             variant="outlined"
             value={newName}
-            onChange={(e) => setNewName(e.target.value)}
+            onChange={(e) => setNewName(e.target.value.toLowerCase().replace(/\s/g, ''))}
             disabled={loading}
             autoFocus
             sx={{
