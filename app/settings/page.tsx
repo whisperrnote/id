@@ -118,7 +118,7 @@ function SettingsContent() {
         if (mounted) {
           setUser({
             email: userData.email,
-            name: userData.name || userData.email.split('@')[0],
+            name: userData.prefs?.username || userData.name || userData.email.split('@')[0],
             userId: userData.$id,
             lastUsernameEdit: userData.prefs?.last_username_edit,
           });

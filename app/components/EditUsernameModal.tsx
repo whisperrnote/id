@@ -53,10 +53,12 @@ export default function EditUsernameModal({
       // 1. Update the account name
       await account.updateName(newName.trim());
       
-      // 2. Update the last_username_edit timestamp in prefs
+      // 2. Update the username and last_username_edit timestamp in prefs
+      // This allows all apps in the ecosystem to resolve the username instantly via account.get()
       const currentPrefs = await account.getPrefs();
       await account.updatePrefs({
         ...currentPrefs,
+        username: newName.trim().toLowerCase(),
         last_username_edit: new Date().toISOString(),
       });
 
