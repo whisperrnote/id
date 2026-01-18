@@ -11,6 +11,7 @@ import { LogoutDialog } from '@/app/components/LogoutDialog';
 import PasskeyList from '@/app/components/PasskeyList';
 import AddPasskeyModal from '@/app/components/AddPasskeyModal';
 import RenamePasskeyModal from '@/app/components/RenamePasskeyModal';
+import EditUsernameModal from '@/app/components/EditUsernameModal';
 import WalletManager from '@/app/components/WalletManager';
 import PreferencesManager from '@/app/components/PreferencesManager';
 import SessionsManager from '@/app/components/SessionsManager';
@@ -31,14 +32,16 @@ import {
   Divider,
   IconButton,
   Drawer,
+  Tooltip,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import { Person, Lock, Settings as SettingsIcon, AccountBalanceWallet, Fingerprint, History, Link, ArrowBack, Menu as MenuIcon } from '@mui/icons-material';
+import { Person, Lock, Settings as SettingsIcon, AccountBalanceWallet, Fingerprint, History, Link, ArrowBack, Menu as MenuIcon, InfoOutlined } from '@mui/icons-material';
 
 interface UserData {
   email: string;
   name: string;
   userId: string;
+  lastUsernameEdit?: string;
 }
 
 interface Passkey {
@@ -71,6 +74,7 @@ function SettingsContent() {
   const [error, setError] = useState<string | null>(null);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [renameModalOpen, setRenameModalOpen] = useState(false);
+  const [editUsernameModalOpen, setEditUsernameModalOpen] = useState(false);
   const [selectedPasskey, setSelectedPasskey] = useState<Passkey | null>(null);
   const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'sessions' | 'activity' | 'identities' | 'preferences' | 'account'>('profile');
   const [mfaEnabled, setMfaEnabled] = useState(true);
@@ -116,6 +120,7 @@ function SettingsContent() {
             email: userData.email,
             name: userData.name || userData.email.split('@')[0],
             userId: userData.$id,
+            lastUsernameEdit: userData.prefs?.last_username_edit,
           });
           
           setWalletAddress(userData.prefs?.walletEth || null);
