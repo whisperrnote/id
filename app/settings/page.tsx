@@ -427,7 +427,10 @@ function SettingsContent() {
           {/* Profile Section */}
           {activeTab === 'profile' && (
             <Box>
-              <Typography sx={{ fontSize: { xs: '1.125rem', md: '1.375rem' }, fontWeight: 700, mb: 3 }}>Username</Typography>
+              <Typography sx={{ fontSize: { xs: '1.125rem', md: '1.375rem' }, fontWeight: 700, mb: 1 }}>Username</Typography>
+              <Typography sx={{ fontSize: '0.875rem', color: dynamicColors.foreground, mb: 2 }}>
+                This is your public identifier across the ecosystem.
+              </Typography>
               <Box
                 sx={{
                   backgroundColor: dynamicColors.secondary,
@@ -452,6 +455,7 @@ function SettingsContent() {
                     </Typography>
                   </Box>
                   <Button
+                    onClick={() => setEditUsernameModalOpen(true)}
                     sx={{
                       color: dynamicColors.primary,
                       fontSize: '1rem',
@@ -465,6 +469,15 @@ function SettingsContent() {
                   </Button>
                 </Box>
               </Box>
+              
+              {user.lastUsernameEdit && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 1, ml: 1 }}>
+                  <InfoOutlined sx={{ fontSize: '0.875rem', color: dynamicColors.foreground }} />
+                  <Typography sx={{ fontSize: '0.75rem', color: dynamicColors.foreground }}>
+                    Last edited on {new Date(user.lastUsernameEdit).toLocaleDateString()} at {new Date(user.lastUsernameEdit).toLocaleTimeString()}
+                  </Typography>
+                </Box>
+              )}
 
               <Typography sx={{ fontSize: { xs: '1.125rem', md: '1.375rem' }, fontWeight: 700, mb: 3, mt: 6 }}>Email</Typography>
               <Box
@@ -873,6 +886,19 @@ function SettingsContent() {
           setSelectedPasskey(null);
         }}
         onSuccess={handleRenameSuccess}
+      />
+
+      <EditUsernameModal
+        isOpen={editUsernameModalOpen}
+        currentName={user?.name || ''}
+        onClose={() => setEditUsernameModalOpen(false)}
+        onSuccess={(newName) => {
+          setUser(prev => prev ? { 
+            ...prev, 
+            name: newName,
+            lastUsernameEdit: new Date().toISOString()
+          } : null);
+        }}
       />
 
       <LogoutDialog
