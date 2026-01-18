@@ -35,9 +35,10 @@ function HomeContent() {
 
         const userData = await account.get();
         if (userData && source) {
-          const redirectUrl = source.startsWith('http://') || source.startsWith('https://')
-            ? source
-            : `https://${source}`;
+          const url = new URL(source.startsWith('http') ? source : `https://${source}`);
+          url.searchParams.set('auth', 'success');
+          const redirectUrl = url.toString();
+          
           markReady();
           router.replace(redirectUrl);
           return;
@@ -52,6 +53,10 @@ function HomeContent() {
 
       } catch (error) {
         console.error('IDM auth check failed:', error);
+        // If error (usually 401), redirect to login
+        const source = searchParams.get('source');
+        const loginUrl = source ? `/login?source=${encodeURIComponent(source)}` : '/login';
+        router.replace(loginUrl);
       } finally {
         markReady();
       }
@@ -66,11 +71,15 @@ function HomeContent() {
 
   if (isChecking) {
     return (
-      <Box sx={{ minHeight: '100vh', backgroundColor: dynamicColors.background, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Box sx={{ minHeight: '100vh', backgroundColor: dynamicColors.background, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 2 }}>
         <CircularProgress sx={{ color: dynamicColors.primary }} />
+        <Typography sx={{ color: dynamicColors.foreground }}>Verifying session...</Typography>
       </Box>
     );
   }
+
+  const source = searchParams.get('source');
+  const redirectUrl = source ? (source.startsWith('http') ? source : `https://${source}`) : null;
 
   return (
     <Box
@@ -101,7 +110,25 @@ function HomeContent() {
         <Typography sx={{ color: dynamicColors.foreground, mb: 1.5 }}>
           You can close this window or tab now and return to the application.
         </Typography>
-        <Typography sx={{ color: dynamicColors.foreground }}>
+        
+        {redirectUrl && (
+          <Button
+            variant="contained"
+            onClick={() => window.location.href = redirectUrl}
+            sx={{
+              mt: 2,
+              mb: 3,
+              backgroundColor: dynamicColors.primary,
+              color: dynamicColors.secondary,
+              fontWeight: 600,
+              '&:hover': { backgroundColor: dynamicColors.primary, opacity: 0.9 }
+            }}
+          >
+            Continue to Application
+          </Button>
+        )}
+
+        <Typography sx={{ color: dynamicColors.foreground, fontSize: '0.875rem', opacity: 0.8 }}>
           If things still look stale, refresh the application window you came from as a last resort.
         </Typography>
       </Box>

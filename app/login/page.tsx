@@ -119,7 +119,9 @@ function LoginContent() {
           // User is already logged in
           const source = searchParams.get('source');
           if (source && !window.opener) {
-            const redirectUrl = source.startsWith('http://') || source.startsWith('https://') ? source : `https://${source}`;
+            const url = new URL(source.startsWith('http') ? source : `https://${source}`);
+            url.searchParams.set('auth', 'success');
+            const redirectUrl = url.toString();
             router.replace(redirectUrl);
           } else {
             setIsSuccess(true);
@@ -229,8 +231,15 @@ function LoginContent() {
         notifyOpenerAuthSuccess({ userId: user.$id });
         const source = searchParams.get('source');
         if (source && !window.opener) {
-          const redirectUrl = source.startsWith('http://') || source.startsWith('https://') ? source : `https://${source}`;
-          window.location.href = redirectUrl;
+          const url = new URL(source.startsWith('http') ? source : `https://${source}`);
+          url.searchParams.set('auth', 'success');
+          const redirectUrl = url.toString();
+          
+          setIsSuccess(true);
+          // Give the browser a moment to settle cookies before redirecting
+          setTimeout(() => {
+            window.location.href = redirectUrl;
+          }, 800);
         } else {
           setIsSuccess(true);
         }
@@ -286,9 +295,16 @@ function LoginContent() {
       await safeCreateSession(response.userId, response.secret);
       notifyOpenerAuthSuccess({ userId: response.userId || address });
 
-      const backUrl = getBackUrl();
-      if (backUrl && !window.opener) {
-        window.location.href = backUrl;
+      const rawBackUrl = getBackUrl();
+      if (rawBackUrl && !window.opener) {
+        const url = new URL(rawBackUrl.startsWith('http') ? rawBackUrl : `https://${rawBackUrl}`);
+        url.searchParams.set('auth', 'success');
+        const backUrl = url.toString();
+        
+        setIsSuccess(true);
+        setTimeout(() => {
+          window.location.href = backUrl;
+        }, 800);
       } else {
         setIsSuccess(true);
       }
@@ -376,8 +392,16 @@ function LoginContent() {
               await safeCreateSession(verifyJson.token.userId || email, verifyJson.token.secret);
               notifyOpenerAuthSuccess({ userId: verifyJson.token.userId || email });
               const backUrl = getBackUrl();
-              if (backUrl && !window.opener) {
-                window.location.href = backUrl;
+              const rawBackUrl = getBackUrl();
+              if (rawBackUrl && !window.opener) {
+                const url = new URL(rawBackUrl.startsWith('http') ? rawBackUrl : `https://${rawBackUrl}`);
+                url.searchParams.set('auth', 'success');
+                const backUrl = url.toString();
+                
+                setIsSuccess(true);
+                setTimeout(() => {
+                  window.location.href = backUrl;
+                }, 800);
               } else {
                 setIsSuccess(true);
               }
@@ -443,8 +467,16 @@ function LoginContent() {
         await safeCreateSession(regVerifyJson.token.userId || email, regVerifyJson.token.secret);
         notifyOpenerAuthSuccess({ userId: regVerifyJson.token.userId || email });
         const backUrl = getBackUrl();
-        if (backUrl && !window.opener) {
-          window.location.href = backUrl;
+        const rawBackUrl = getBackUrl();
+        if (rawBackUrl && !window.opener) {
+          const url = new URL(rawBackUrl.startsWith('http') ? rawBackUrl : `https://${rawBackUrl}`);
+          url.searchParams.set('auth', 'success');
+          const backUrl = url.toString();
+          
+          setIsSuccess(true);
+          setTimeout(() => {
+            window.location.href = backUrl;
+          }, 800);
         } else {
           setIsSuccess(true);
         }
