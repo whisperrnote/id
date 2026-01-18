@@ -112,8 +112,8 @@ function HomeContent() {
 export default function Home() {
   return (
     <Suspense fallback={
-      <Box sx={{ minHeight: '100vh', backgroundColor: '#181711', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <CircularProgress sx={{ color: '#f9c806' }} />
+      <Box sx={{ minHeight: '100vh', backgroundColor: '#000000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <CircularProgress sx={{ color: '#00F5FF' }} />
       </Box>
     }>
       <HomeContent />

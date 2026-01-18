@@ -60,8 +60,8 @@ const IDM_AUTH_SUCCESS_EVENT = 'idm:auth-success';
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#181711' }}>
-        <CircularProgress sx={{ color: '#f9c806' }} />
+      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#000000' }}>
+        <CircularProgress sx={{ color: '#00F5FF' }} />
       </Box>
     }>
       <LoginContent />
@@ -462,8 +462,8 @@ function LoginContent() {
   // Show loading state while checking session
   if (isCheckingSession) {
     return (
-      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#181711' }}>
-        <CircularProgress sx={{ color: '#f9c806' }} />
+      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#000000' }}>
+        <CircularProgress sx={{ color: '#00F5FF' }} />
       </Box>
     );
   }

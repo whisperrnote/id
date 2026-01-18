@@ -1,16 +1,16 @@
 // Centralized color configuration from environment variables
 export const colorsDark = {
-  primary: '#FFC107',
-  secondary: '#1A237E',
-  foreground: '#FAF8F6',
-  background: '#1B1C20',
+  primary: '#00F5FF',    // Electric Teal
+  secondary: '#0A0A0A',  // Elevated Surface
+  foreground: '#F2F2F2', // Titanium
+  background: '#000000', // The Void
 };
 
 export const colorsLight = {
-  primary: '#FFC107',
-  secondary: '#1A237E',
-  foreground: '#1B1C20',
-  background: '#FAF8F6',
+  primary: '#00F5FF',
+  secondary: '#F2F2F2',
+  foreground: '#000000',
+  background: '#FFFFFF',
 };
 
 export const colors = colorsDark;

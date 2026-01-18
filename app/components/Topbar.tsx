@@ -101,7 +101,7 @@ export default function Topbar({ userName, userEmail, onManageAccount, onSignOut
   };
 
   const avatarColor = (email: string) => {
-    const colors = ['#f9c806', '#4f46e5', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6'];
+    const colors = ['#00F0FF', '#4f46e5', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6'];
     let hash = 0;
     for (let i = 0; i < email.length; i++) {
       hash = email.charCodeAt(i) + ((hash << 5) - hash);
