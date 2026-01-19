@@ -113,7 +113,7 @@ export class EcosystemSecurity {
     return crypto.subtle.deriveKey(
       {
         name: "PBKDF2",
-        salt: salt,
+        salt: salt as any,
         iterations: EcosystemSecurity.PBKDF2_ITERATIONS,
         hash: "SHA-256",
       },
