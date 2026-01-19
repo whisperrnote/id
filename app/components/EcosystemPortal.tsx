@@ -18,6 +18,7 @@ import {
     AutoAwesome as PulseIcon,
 } from '@mui/icons-material';
 import { ECOSYSTEM_APPS, getEcosystemUrl } from '../../lib/constants';
+import { EcosystemWidgets } from '../../ecosystem/integration/Widgets';
 
 interface EcosystemPortalProps {
     open: boolean;
@@ -194,6 +195,11 @@ export default function EcosystemPortal({ open, onClose }: EcosystemPortalProps)
                             </Grid>
                         ))}
                     </Grid>
+
+                    {/* Ecosystem Widgets Integration */}
+                    {search.length === 0 && (
+                        <EcosystemWidgets />
+                    )}
                 </Box>
             </Paper>
         </Dialog>
