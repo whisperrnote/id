@@ -1,7 +1,6 @@
 'use client';
 import { useColors } from '@/lib/theme-context';
 
-import { colors } from '@/lib/colors';
 import { useState, useEffect } from 'react';
 import { account } from '@/lib/appwrite';
 import {
@@ -21,7 +20,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { Models } from 'appwrite';
 
-interface Identity extends Models.Identity {}
+type Identity = Models.Identity;
 
 interface ConnectedIdentitiesProps {
   onIdentitiesLoaded?: (count: number) => void;
@@ -68,6 +67,7 @@ export default function ConnectedIdentities({ onIdentitiesLoaded }: ConnectedIde
 
   useEffect(() => {
     loadIdentities();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadIdentities = async () => {

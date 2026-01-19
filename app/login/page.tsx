@@ -461,7 +461,6 @@ function LoginContent() {
       if (regVerifyJson.token?.secret) {
         await safeCreateSession(regVerifyJson.token.userId || email, regVerifyJson.token.secret);
         notifyOpenerAuthSuccess({ userId: regVerifyJson.token.userId || email });
-        const backUrl = getBackUrl();
         const rawBackUrl = getBackUrl();
         if (rawBackUrl && !window.opener) {
           const url = new URL(rawBackUrl.startsWith('http') ? rawBackUrl : `https://${rawBackUrl}`);
