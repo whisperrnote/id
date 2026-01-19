@@ -16,3 +16,15 @@ export type Challenges = Models.Row & {
     challenge: string;
     createdAt: string | null;
 }
+
+export type Keychain = Models.Row & {
+    userId: string;
+    type: string;
+    credentialId: string | null;
+    wrappedKey: string;
+    salt: string;
+    params: string | null;
+    isBackup: boolean;
+    createdAt: string | null;
+    updatedAt: string | null;
+}

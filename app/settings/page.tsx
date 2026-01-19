@@ -16,7 +16,8 @@ import WalletManager from '@/app/components/WalletManager';
 import PreferencesManager from '@/app/components/PreferencesManager';
 import SessionsManager from '@/app/components/SessionsManager';
 import ActivityLogs from '@/app/components/ActivityLogs';
-import ConnectedIdentities from '@/app/components/ConnectedIdentities';
+import connectedIdentities from '@/app/components/ConnectedIdentities';
+import MasterPassManager from '@/app/components/MasterPassManager';
 import { listPasskeys } from '@/lib/passkey-client-utils';
 import {
   Container,
