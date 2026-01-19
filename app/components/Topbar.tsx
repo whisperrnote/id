@@ -135,17 +135,32 @@ export default function Topbar({ userName, userEmail, onManageAccount, onSignOut
       }}
     >
       {/* App Name */}
-      <Typography
-        sx={{
-          fontSize: '1.25rem',
-          fontWeight: 700,
-          color: dynamicColors.primary,
-          cursor: 'pointer',
-        }}
-        onClick={() => router.push('/')}
-      >
-        {appName}
-      </Typography>
+      <Stack direction="row" spacing={2} alignItems="center">
+        <IconButton 
+          onClick={() => setIsPortalOpen(true)}
+          sx={{ 
+            color: dynamicColors.primary,
+            bgcolor: alpha(dynamicColors.primary, 0.05),
+            border: `1px solid ${alpha(dynamicColors.primary, 0.1)}`,
+            borderRadius: '10px'
+          }}
+        >
+          <Apps sx={{ fontSize: 20 }} />
+        </IconButton>
+        <Typography
+          sx={{
+            fontSize: '1.25rem',
+            fontWeight: 800,
+            color: dynamicColors.primary,
+            cursor: 'pointer',
+            fontFamily: 'var(--font-space-grotesk)',
+            letterSpacing: '-0.02em'
+          }}
+          onClick={() => router.push('/')}
+        >
+          {appName.toUpperCase()}
+        </Typography>
+      </Stack>
 
       {/* Account Menu */}
       <Box>
@@ -162,7 +177,8 @@ export default function Topbar({ userName, userEmail, onManageAccount, onSignOut
               height: 36,
               backgroundColor: avatarColor(userEmail || 'user'),
               fontSize: '0.875rem',
-              fontWeight: 600,
+              fontWeight: 800,
+              borderRadius: '10px'
             }}
           >
             {getInitials()}
@@ -177,9 +193,12 @@ export default function Topbar({ userName, userEmail, onManageAccount, onSignOut
           transformOrigin={{ vertical: 'top', horizontal: 'right' }}
           sx={{
             '& .MuiPaper-root': {
-              backgroundColor: dynamicColors.secondary,
+              backgroundColor: 'rgba(10, 10, 10, 0.95)',
+              backdropFilter: 'blur(20px)',
               border: `1px solid ${borderColor}`,
+              borderRadius: '20px',
               mt: 1,
+              boxShadow: '0 20px 40px rgba(0,0,0,0.6)'
             },
           }}
         >
@@ -194,22 +213,23 @@ export default function Topbar({ userName, userEmail, onManageAccount, onSignOut
                       height: 40,
                       backgroundColor: avatarColor(userEmail),
                       fontSize: '1rem',
-                      fontWeight: 600,
+                      fontWeight: 800,
+                      borderRadius: '10px'
                     }}
                   >
                     {getInitials()}
                   </Avatar>
                   <Stack spacing={0.5}>
-                    <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: textColor }}>
+                    <Typography sx={{ fontSize: '0.875rem', fontWeight: 800, color: textColor }}>
                       {userName}
                     </Typography>
-                    <Typography sx={{ fontSize: '0.75rem', color: dynamicColors.foreground }}>
+                    <Typography sx={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.4)' }}>
                       {userEmail}
                     </Typography>
                   </Stack>
                 </Stack>
               </Box>
-              <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.1)', my: 1 }} />
+              <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.05)', my: 1 }} />
             </>
           )}
 
@@ -220,6 +240,8 @@ export default function Topbar({ userName, userEmail, onManageAccount, onSignOut
               sx={{
                 color: dynamicColors.primary,
                 fontSize: '0.875rem',
+                fontWeight: 600,
+                py: 1.25,
                 '&:hover': { backgroundColor: hoverBg },
               }}
             >
@@ -233,6 +255,8 @@ export default function Topbar({ userName, userEmail, onManageAccount, onSignOut
             sx={{
               color: textColor,
               fontSize: '0.875rem',
+              fontWeight: 600,
+              py: 1.25,
               '&:hover': { backgroundColor: hoverBg },
             }}
           >
@@ -245,6 +269,8 @@ export default function Topbar({ userName, userEmail, onManageAccount, onSignOut
             sx={{
               color: textColor,
               fontSize: '0.875rem',
+              fontWeight: 600,
+              py: 1.25,
               '&:hover': { backgroundColor: hoverBg },
             }}
           >
@@ -257,6 +283,8 @@ export default function Topbar({ userName, userEmail, onManageAccount, onSignOut
             sx={{
               color: textColor,
               fontSize: '0.875rem',
+              fontWeight: 600,
+              py: 1.25,
               '&:hover': { backgroundColor: hoverBg },
             }}
           >
@@ -264,13 +292,15 @@ export default function Topbar({ userName, userEmail, onManageAccount, onSignOut
             Activity
           </MenuItem>
 
-          <Divider sx={{ borderColor: borderColor, my: 1 }} />
+          <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.05)', my: 1 }} />
 
           <MenuItem
             onClick={handleSignOut}
             sx={{
               color: '#ef4444',
               fontSize: '0.875rem',
+              fontWeight: 800,
+              py: 1.25,
               '&:hover': { backgroundColor: 'rgba(239, 68, 68, 0.1)' },
             }}
           >
@@ -278,6 +308,11 @@ export default function Topbar({ userName, userEmail, onManageAccount, onSignOut
             Sign Out
           </MenuItem>
         </Menu>
+
+        <EcosystemPortal 
+          open={isPortalOpen} 
+          onClose={() => setIsPortalOpen(false)} 
+        />
       </Box>
     </Box>
   );
