@@ -46,7 +46,36 @@ export class EcosystemSecurity {
       if (msg.type === 'COMMAND' && msg.payload.action === 'LOCK_SYSTEM') {
         this.lock();
       }
+
+      // Handle key requests from other nodes
+      if (msg.type === 'RPC_REQUEST' && msg.payload.method === 'REQUEST_KEY_SYNC') {
+        if (this.nodeId === 'id' && this.masterKey && this.isUnlocked) {
+          this.reBroadcastKey(msg.sourceNode);
+        }
+      }
     });
+
+    // Request key if we are not ID and not unlocked
+    if (this.nodeId !== 'id' && !this.isUnlocked) {
+      MeshProtocol.broadcast({
+        type: 'RPC_REQUEST',
+        targetNode: 'id',
+        payload: { method: 'REQUEST_KEY_SYNC' }
+      }, this.nodeId);
+    }
+  }
+
+  private async reBroadcastKey(targetNode: string) {
+    if (!this.masterKey) return;
+    const keyBytes = await crypto.subtle.exportKey("raw", this.masterKey);
+    MeshProtocol.broadcast({
+      type: 'COMMAND',
+      targetNode: targetNode,
+      payload: { 
+        action: 'SYNC_MASTERPASS_KEY', 
+        keyBytes: keyBytes 
+      }
+    }, 'id');
   }
 
   private async syncKeyFromMaster(keyBytes: ArrayBuffer) {
