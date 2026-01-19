@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { Providers } from '@/app/providers';
+import { EcosystemClient } from '@/app/components/EcosystemClient';
 
 const inter = Inter({
   subsets: ["latin"],
@@ -26,6 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fra.cloud.appwrite.io" />
       </head>
       <body className="antialiased">
+        <EcosystemClient nodeId="id" />
         <Providers>{children}</Providers>
       </body>
     </html>
