@@ -84,7 +84,6 @@ function LoginContent() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [emailValid, setEmailValid] = useState(false);
-  const [emailTouched, setEmailTouched] = useState(false);
   const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
   const [authMethod, setAuthMethod] = useState(0);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
@@ -136,7 +135,7 @@ function LoginContent() {
     };
 
     checkExistingSession();
-  }, [router, searchParams, setSource]);
+  }, [router, searchParams, setSource, notifyOpenerAuthSuccess]);
 
   // Initialize source from URL (takes priority over localStorage)
   useEffect(() => {
@@ -153,7 +152,6 @@ function LoginContent() {
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newEmail = e.target.value;
     setEmail(newEmail);
-    setEmailTouched(true);
 
     if (typingTimeout) clearTimeout(typingTimeout);
 
@@ -211,7 +209,7 @@ function LoginContent() {
     // Give OAuth a moment to complete
     const timer = setTimeout(captureOAuthSession, 500);
     return () => clearTimeout(timer);
-  }, []);
+  }, [notifyOpenerAuthSuccess]);
 
   // Handle password login
   const handlePasswordLogin = async () => {
@@ -389,7 +387,6 @@ function LoginContent() {
             if (verifyJson.token?.secret) {
               await safeCreateSession(verifyJson.token.userId || email, verifyJson.token.secret);
               notifyOpenerAuthSuccess({ userId: verifyJson.token.userId || email });
-              const backUrl = getBackUrl();
               const rawBackUrl = getBackUrl();
               if (rawBackUrl && !window.opener) {
                 const url = new URL(rawBackUrl.startsWith('http') ? rawBackUrl : `https://${rawBackUrl}`);
