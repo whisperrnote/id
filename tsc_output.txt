@@ -1,0 +1,31 @@
+app/components/ActivityLogs.tsx(225,30): error TS2339: Property '$id' does not exist on type 'Log'.
+app/components/ActivityLogs.tsx(261,39): error TS2339: Property 'createdAt' does not exist on type 'Log'.
+app/components/ConnectedIdentities.tsx(223,46): error TS2551: Property 'createdAt' does not exist on type 'Identity'. Did you mean '$createdAt'?
+app/components/ConnectedIdentities.tsx(232,39): error TS2345: Argument of type 'string' is not assignable to parameter of type 'number'.
+app/components/RenamePasskeyModal.tsx(124,15): error TS2322: Type '{ type: "text"; value: string; onChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void; placeholder: string; ... 5 more ...; sx: { ...; }; }' is not assignable to type 'IntrinsicAttributes & { variant?: "outlined" | undefined; } & Omit<OutlinedTextFieldProps | FilledTextFieldProps | StandardTextFieldProps, "variant">'.
+  Property 'maxLength' does not exist on type 'IntrinsicAttributes & { variant?: "outlined" | undefined; } & Omit<OutlinedTextFieldProps | FilledTextFieldProps | StandardTextFieldProps, "variant">'.
+app/components/SessionsManager.tsx(56,43): error TS2339: Property 'userAgent' does not exist on type 'Session'.
+app/components/SessionsManager.tsx(272,45): error TS2551: Property 'updatedAt' does not exist on type 'Session'. Did you mean '$updatedAt'?
+app/components/SessionsManager.tsx(272,66): error TS2551: Property 'createdAt' does not exist on type 'Session'. Did you mean '$createdAt'?
+app/components/SessionsManager.tsx(280,45): error TS2551: Property 'createdAt' does not exist on type 'Session'. Did you mean '$createdAt'?
+app/components/WalletManager.tsx(42,17): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+app/components/WalletManager.tsx(53,37): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+app/components/WalletManager.tsx(69,38): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+app/login/page.tsx(265,19): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+app/login/page.tsx(269,37): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+app/login/page.tsx(276,38): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+app/login/page_old.tsx(487,12): error TS2304: Cannot find name 'OAuthButtons'.
+app/login/page_old.tsx(503,22): error TS2304: Cannot find name 'emailLogin'.
+app/login/page_old.tsx(504,32): error TS2304: Cannot find name 'setEmailLogin'.
+app/login/page_old.tsx(531,24): error TS2304: Cannot find name 'passwordLogin'.
+app/login/page_old.tsx(532,34): error TS2552: Cannot find name 'setPasswordLogin'. Did you mean 'setPassword'?
+app/login/page_old.tsx(599,19): error TS2304: Cannot find name 'emailLogin'.
+app/login/page_old.tsx(600,26): error TS2304: Cannot find name 'emailLogin'.
+lib/passkey-client-utils.ts(34,23): error TS2339: Property 'id' does not exist on type '{}'.
+lib/passkey-client-utils.ts(34,42): error TS2339: Property 'id' does not exist on type '{}'.
+lib/passkey-client-utils.ts(36,65): error TS2339: Property 'map' does not exist on type '{}'.
+lib/passkey-client-utils.ts(42,53): error TS2739: Type 'Record<string, unknown>' is missing the following properties from type 'PublicKeyCredentialCreationOptions': challenge, pubKeyCredParams, rp, user
+lib/simple-passkeys.ts(172,36): error TS2345: Argument of type 'Uint8Array<ArrayBuffer>' is not assignable to parameter of type 'ArrayBuffer'.
+  Type 'Uint8Array<ArrayBuffer>' is missing the following properties from type 'ArrayBuffer': maxByteLength, resizable, resize, detached, and 2 more.
+lib/simple-passkeys.ts(190,36): error TS2345: Argument of type 'Uint8Array<ArrayBuffer>' is not assignable to parameter of type 'ArrayBuffer'.
+  Type 'Uint8Array<ArrayBuffer>' is missing the following properties from type 'ArrayBuffer': maxByteLength, resizable, resize, detached, and 2 more.

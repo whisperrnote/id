@@ -4,11 +4,9 @@ import { useState, useEffect, Suspense, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Client, Account, OAuthProvider } from 'appwrite';
 import { Box, Typography, Stack, TextField, Button, Alert, CircularProgress, IconButton, Tabs, Tab, useMediaQuery, useTheme } from '@mui/material';
-import { Visibility, VisibilityOff, Close, Edit, VpnKey, Wallet } from '@mui/icons-material';
+import { Visibility, VisibilityOff, Close, VpnKey, Wallet } from '@mui/icons-material';
 import { safeCreateSession, safeDeleteCurrentSession } from '@/lib/safe-session';
 import { checkSession } from '@/lib/check-session';
-import { getAppOrigin } from '@/lib/app-origin';
-import { colors } from '@/lib/colors';
 import { useColors } from '@/lib/theme-context';
 import { useSource } from '@/lib/source-context';
 
