@@ -6,6 +6,7 @@ import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import { SourceProvider } from '@/lib/source-context';
 import { ThemeProvider as AppThemeProvider, useTheme } from '@/lib/theme-context';
 import { useEcosystemNode } from '@/lib/use-ecosystem-node';
+import { ecosystemSecurity } from '@/lib/ecosystem/security';
 
 const getDesignTokens = (isDark: boolean): any => ({
   palette: {
