@@ -129,6 +129,11 @@ const getDesignTokens = (isDark: boolean): any => ({
 function MuiThemeWrapper({ children }: { children: React.ReactNode }) {
   const { isDark } = useTheme();
   useEcosystemNode('id');
+  
+  React.useEffect(() => {
+    ecosystemSecurity.init('id');
+  }, []);
+
   const theme = createTheme(getDesignTokens(isDark));
 
   React.useEffect(() => {
