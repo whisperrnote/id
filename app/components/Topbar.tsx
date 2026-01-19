@@ -15,7 +15,9 @@ import {
   Typography,
   Divider,
 } from '@mui/material';
-import { Logout, Settings, ArrowBack, Fingerprint, History } from '@mui/icons-material';
+import { Logout, Settings, ArrowBack, Fingerprint, History, Apps } from '@mui/icons-material';
+import EcosystemPortal from './EcosystemPortal';
+import { useEffect } from 'react';
 
 interface TopbarProps {
   userName?: string;
@@ -30,7 +32,19 @@ export default function Topbar({ userName, userEmail, onManageAccount, onSignOut
   const dynamicColors = useColors();
   const { isDark } = useTheme();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [isPortalOpen, setIsPortalOpen] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.code === 'Space') {
+        e.preventDefault();
+        setIsPortalOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
   const { getBackUrl } = useSource();
   const appName = process.env.NEXT_PUBLIC_APP_NAME || 'Auth System';
   
