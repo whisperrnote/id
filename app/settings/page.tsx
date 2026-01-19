@@ -550,9 +550,26 @@ function SettingsContent() {
 
           {/* Security Section */}
           {activeTab === 'security' && (
-            <Box sx={{ space: 4 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {/* Master Pass Central */}
+              <Box>
+                <Typography sx={{ fontSize: { xs: '1.125rem', md: '1.375rem' }, fontWeight: 700, mb: 3 }}>
+                  Global Encryption Control
+                </Typography>
+                <Box
+                  sx={{
+                    backgroundColor: dynamicColors.secondary,
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '0.75rem',
+                    p: 3,
+                  }}
+                >
+                  <MasterPassManager userId={user.userId} />
+                </Box>
+              </Box>
+
               {/* Passkeys */}
-              <Box sx={{ mb: 6 }}>
+              <Box>
                 <Box
                   sx={{
                     display: 'flex',
@@ -628,7 +645,7 @@ function SettingsContent() {
               </Box>
 
               {/* Wallets */}
-              <Box sx={{ mb: 6 }}>
+              <Box>
                 <Typography sx={{ fontSize: { xs: '1.125rem', md: '1.375rem' }, fontWeight: 700, mb: 3 }}>
                   Connected Wallet
                 </Typography>
