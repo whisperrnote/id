@@ -610,35 +610,39 @@ function SettingsContent() {
                 }}
               >
                 <Typography sx={{ fontSize: '1rem', color: textColor, mb: 1, fontWeight: 600 }}>
-                  Sync Global Profile
-                </Typography>
-                <Typography sx={{ fontSize: '0.875rem', color: dynamicColors.foreground, mb: 3 }}>
-                  If other users cannot find you in Note or Connect, use this to force a refresh of your global ecosystem profile.
+                  Global Profile Status
                 </Typography>
                 
                 {profileStatus && (
-                  <Typography sx={{ fontSize: '0.875rem', color: profileStatus.color, mb: 2, fontWeight: 700 }}>
+                  <Typography sx={{ fontSize: '0.875rem', color: profileStatus.color, mb: profileStatus.label.includes('Correctly linked') ? 0 : 2, fontWeight: 700 }}>
                     {profileStatus.label}
                   </Typography>
                 )}
 
-                <Button
-                  onClick={handleFixDiscoverability}
-                  disabled={syncing}
-                  variant="outlined"
-                  sx={{
-                    borderColor: syncSuccess ? '#10b981' : dynamicColors.primary,
-                    color: syncSuccess ? '#10b981' : dynamicColors.primary,
-                    fontWeight: 700,
-                    '&:hover': {
-                      borderColor: syncSuccess ? '#059669' : '#ffd633',
-                      backgroundColor: 'rgba(249, 200, 6, 0.05)',
-                    }
-                  }}
-                >
-                  {syncing ? <CircularProgress size={20} sx={{ mr: 1 }} /> : null}
-                  {syncSuccess ? 'Profile Synced!' : 'Fix Discoverability'}
-                </Button>
+                {!profileStatus?.label.includes('Correctly linked') && (
+                  <>
+                    <Typography sx={{ fontSize: '0.875rem', color: dynamicColors.foreground, mb: 3 }}>
+                      If other users cannot find you in Note or Connect, use this to force a refresh of your global ecosystem profile.
+                    </Typography>
+                    <Button
+                      onClick={handleFixDiscoverability}
+                      disabled={syncing}
+                      variant="outlined"
+                      sx={{
+                        borderColor: syncSuccess ? '#10b981' : dynamicColors.primary,
+                        color: syncSuccess ? '#10b981' : dynamicColors.primary,
+                        fontWeight: 700,
+                        '&:hover': {
+                          borderColor: syncSuccess ? '#059669' : '#ffd633',
+                          backgroundColor: 'rgba(249, 200, 6, 0.05)',
+                        }
+                      }}
+                    >
+                      {syncing ? <CircularProgress size={20} sx={{ mr: 1 }} /> : null}
+                      {syncSuccess ? 'Profile Synced!' : 'Fix Discoverability'}
+                    </Button>
+                  </>
+                )}
               </Box>
             </Box>
           )}
