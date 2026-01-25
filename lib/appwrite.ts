@@ -55,15 +55,19 @@ export const AppwriteService = {
       username = String(username).toLowerCase().replace(/^@/, '').replace(/[^a-z0-9_]/g, '').slice(0, 50);
       if (!username) username = `user_${user.$id.slice(0, 8)}`;
 
-      const profileData = {
+      const profilePicId = prefs?.profilePicId || user.profilePicId || null;
+      const profileData: any = {
         username,
         displayName: user.name || username,
         updatedAt: new Date().toISOString(),
-        avatarFileId: prefs?.profilePicId || user.profilePicId || null,
         walletAddress: prefs?.walletEth || prefs?.walletAddress || null,
         bio: prefs?.bio || profile?.bio || "",
         privacySettings: JSON.stringify({ public: true, searchable: true })
       };
+
+      if (profilePicId) {
+        profileData.avatarFileId = profilePicId;
+      }
 
       const permissions = [
         'read("any")',
@@ -73,17 +77,36 @@ export const AppwriteService = {
 
       // 3. Selective Update: Only write if data is missing or different
       if (!profile) {
-        await databases.createDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id, {
-          ...profileData,
-          createdAt: new Date().toISOString()
-        }, permissions);
+        try {
+          await databases.createDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id, {
+            ...profileData,
+            createdAt: new Date().toISOString()
+          }, permissions);
+        } catch (e: any) {
+          if (e.message?.includes('avatarFileId')) {
+            delete profileData.avatarFileId;
+            profileData.profilePicId = profilePicId;
+            await databases.createDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id, {
+              ...profileData,
+              createdAt: new Date().toISOString()
+            }, permissions);
+          } else throw e;
+        }
       } else {
         const needsHealing = profile.username !== username || 
-                           !profile.avatarFileId && profileData.avatarFileId ||
+                           (profilePicId && !profile.avatarFileId && !profile.profilePicId) ||
                            !profile.privacySettings;
         
         if (needsHealing) {
-          await databases.updateDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id, profileData);
+          try {
+            await databases.updateDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id, profileData);
+          } catch (e: any) {
+            if (e.message?.includes('avatarFileId')) {
+              delete profileData.avatarFileId;
+              profileData.profilePicId = profilePicId;
+              await databases.updateDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id, profileData);
+            } else throw e;
+          }
         }
       }
 
