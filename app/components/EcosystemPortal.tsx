@@ -142,7 +142,7 @@ export default function EcosystemPortal({ open, onClose }: EcosystemPortalProps)
                     </Typography>
                     <Grid container spacing={2}>
                         {filteredApps.map((app) => (
-                            <Grid item xs={12} sm={6} key={app.id}>
+                            <Grid size={{ xs: 12, sm: 6 }} key={app.id}>
                                 <Box
                                     component="button"
                                     onClick={() => handleAppClick(app.subdomain)}
