@@ -82,6 +82,24 @@ export const AppwriteService = {
     }
   },
 
+  /**
+   * Checks if a username is available in the global ecosystem directory.
+   */
+  async checkUsernameAvailability(username: string): Promise<boolean> {
+    if (!username) return false;
+    const normalized = username.toLowerCase().replace(/\s/g, '');
+    try {
+      const res = await databases.listDocuments(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, [
+        Query.equal('username', normalized),
+        Query.limit(1)
+      ]);
+      return res.total === 0;
+    } catch (e) {
+      console.error('[AppwriteService] Failed to check username availability:', e);
+      return true; // Assume available on error to avoid blocking user
+    }
+  },
+
   // Keychain management
   async createKeychainEntry(data: Omit<Keychain, "$id" | "$createdAt" | "$updatedAt">): Promise<Keychain> {
     const doc = await databases.createDocument(
