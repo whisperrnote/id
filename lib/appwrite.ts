@@ -20,70 +20,76 @@ const databases = new Databases(client);
 export const CONNECT_DATABASE_ID = 'chat';
 export const CONNECT_COLLECTION_ID_USERS = 'users';
 
+const SYNC_CACHE_KEY = 'whisperr_identity_synced_v2';
+const SESSION_SYNC_KEY = 'whisperr_session_identity_ok';
+
 export const AppwriteService = {
   /**
-   * Proactively ensures the user has a normalized, discoverable profile in the 
-   * global ecosystem directory (chat.users).
+   * Universal Identity Hook: Efficiently ensures the user is linked in the global directory.
+   * Uses caching to minimize database overhead.
    */
-  async ensureGlobalProfile(user: any) {
-    if (!user?.$id) throw new Error("No active session found");
+  async ensureGlobalProfile(user: any, force = false) {
+    if (!user?.$id || typeof window === 'undefined') return null;
 
-    console.log('[Identity] Starting global sync for:', user.$id);
+    // Layer 1: Session-level skip (Zero DB calls if already checked this tab)
+    if (!force && sessionStorage.getItem(SESSION_SYNC_KEY)) return null;
 
-    // 1. Get or Generate Username
-    const prefs = await account.getPrefs();
-    // Prioritize prefs, then name, then email
-    let username = prefs?.username || user.name || user.email.split('@')[0];
-    
-    // Strict Normalization: lowercase, no @, alphanumeric + underscores, max 50 chars
-    username = String(username).toLowerCase().replace(/^@/, '').replace(/[^a-z0-9_]/g, '').slice(0, 50);
-    if (!username) username = `user_${user.$id.slice(0, 8)}`;
-
-    // 2. Force Write to Global Table
-    const now = new Date().toISOString();
-    const profileData = {
-      username,
-      displayName: user.name || username,
-      updatedAt: now,
-      avatarUrl: prefs?.avatarUrl || user.avatarUrl || null,
-      walletAddress: prefs?.walletEth || null,
-      bio: prefs?.bio || ""
-    };
+    // Layer 2: Persistent-level skip (24h TTL)
+    const lastSync = localStorage.getItem(SYNC_CACHE_KEY);
+    if (!force && lastSync && (Date.now() - parseInt(lastSync)) < 24 * 60 * 60 * 1000) {
+      sessionStorage.setItem(SESSION_SYNC_KEY, '1');
+      return null;
+    }
 
     try {
-      // Check if exists first to decide Create vs Update
-      let existingProfile = null;
-      try {
-        existingProfile = await databases.getDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id);
-      } catch (e: any) {
-        if (e.code !== 404) throw e;
-      }
+      console.log('[Identity] Proactive sync checking for:', user.$id);
 
-      if (!existingProfile) {
-        await databases.createDocument(
-          CONNECT_DATABASE_ID,
-          CONNECT_COLLECTION_ID_USERS,
-          user.$id,
-          { ...profileData, createdAt: now }
-        );
+      // 1. Get current state from Auth and Database
+      const [prefs, profile] = await Promise.all([
+        account.getPrefs(),
+        databases.getDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id).catch(() => null)
+      ]);
+
+      // 2. Generate normalized username
+      let username = prefs?.username || user.name || user.email.split('@')[0];
+      username = String(username).toLowerCase().replace(/^@/, '').replace(/[^a-z0-9_]/g, '').slice(0, 50);
+      if (!username) username = `user_${user.$id.slice(0, 8)}`;
+
+      const profileData = {
+        username,
+        displayName: user.name || username,
+        updatedAt: new Date().toISOString(),
+        avatarUrl: prefs?.avatarUrl || user.avatarUrl || null,
+        walletAddress: prefs?.walletEth || null,
+        bio: prefs?.bio || ""
+      };
+
+      // 3. Selective Update: Only write if data is missing or different
+      if (!profile) {
+        await databases.createDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id, {
+          ...profileData,
+          createdAt: new Date().toISOString()
+        });
       } else {
-        await databases.updateDocument(
-          CONNECT_DATABASE_ID,
-          CONNECT_COLLECTION_ID_USERS,
-          user.$id,
-          profileData
-        );
+        const needsHealing = profile.username !== username || !profile.updatedAt; // Add more diff checks if needed
+        if (needsHealing) {
+          await databases.updateDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id, profileData);
+        }
       }
 
-      // 3. Force Sync back to Account Prefs (The UI source)
+      // 4. Update Auth Prefs if out of sync
       if (prefs.username !== username) {
         await account.updatePrefs({ ...prefs, username });
       }
 
+      // 5. Update Caches
+      localStorage.setItem(SYNC_CACHE_KEY, Date.now().toString());
+      sessionStorage.setItem(SESSION_SYNC_KEY, '1');
+
       return { success: true, username };
-    } catch (syncErr: any) {
-      console.error('[Identity] Critical Sync Failure:', syncErr);
-      throw syncErr;
+    } catch (error) {
+      console.warn('[Identity] Background sync deferred:', error);
+      return null;
     }
   },
 
