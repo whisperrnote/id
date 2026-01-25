@@ -7,6 +7,7 @@ import { SourceProvider } from '@/lib/source-context';
 import { ThemeProvider as AppThemeProvider, useTheme } from '@/lib/theme-context';
 import { useEcosystemNode } from '@/lib/use-ecosystem-node';
 import { ecosystemSecurity } from '@/lib/ecosystem/security';
+import { AppwriteService, account } from '@/lib/appwrite';
 
 const getDesignTokens = (isDark: boolean): any => ({
   palette: {
@@ -132,6 +133,16 @@ function MuiThemeWrapper({ children }: { children: React.ReactNode }) {
   
   React.useEffect(() => {
     ecosystemSecurity.init('id');
+    
+    // Proactive Global Sync
+    (async () => {
+      try {
+        const u = await account.get();
+        if (u) await AppwriteService.ensureGlobalProfile(u);
+      } catch (e) {
+        // No session
+      }
+    })();
   }, []);
 
   const theme = createTheme(getDesignTokens(isDark));

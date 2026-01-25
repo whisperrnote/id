@@ -25,61 +25,88 @@ export const CONNECT_COLLECTION_ID_USERS = 'users';
 
 export const AppwriteService = {
   /**
-   * Syncs the user's discoverability and profile to the global ecosystem directory.
+   * Proactively ensures the user has a normalized, discoverable profile in the 
+   * global ecosystem directory (chat.users).
    */
-  async syncGlobalProfile(user: any, prefs: any) {
-    if (!user?.$id) return;
+  async ensureGlobalProfile(user: any) {
+    if (!user?.$id) return null;
 
     try {
-      const isPublic = prefs?.publicProfile !== false;
-      const username = prefs?.username || user.name || user.email.split('@')[0];
-      const displayName = user.name || username;
+      // 1. Get or Generate Username
+      const prefs = await account.getPrefs();
+      let username = prefs?.username || user.name || user.email.split('@')[0];
+      
+      // Strict Normalization: lowercase, no @, alphanumeric + underscores
+      username = username.toLowerCase().replace(/^@/, '').replace(/[^a-z0-9_]/g, '');
+      if (!username) username = `user_${user.$id.slice(0, 8)}`;
 
-      // Try to get existing global profile
+      // 2. Check for existing document
       let profile;
       try {
         profile = await databases.getDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id);
       } catch (e: any) {
-        if (e.code === 404) {
-          // Profile doesn't exist, create it if public or if we want to ensure it exists
-          profile = null;
-        } else {
-          throw e;
-        }
+        if (e.code !== 404) throw e;
+        profile = null;
       }
 
+      const now = new Date().toISOString();
       const profileData = {
-        username: username.toLowerCase().replace(/\s/g, ''),
-        displayName: displayName,
-        updatedAt: new Date().toISOString(),
-        privacySettings: JSON.stringify({ public: isPublic, searchable: isPublic }),
-        avatarUrl: prefs?.avatarUrl || null,
+        username,
+        displayName: user.name || username,
+        updatedAt: now,
+        privacySettings: JSON.stringify({ public: true, searchable: true }),
+        avatarUrl: prefs?.avatarUrl || user.avatarUrl || null,
+        walletAddress: prefs?.walletEth || null,
       };
 
-      if (profile) {
-        await databases.updateDocument(
-          CONNECT_DATABASE_ID,
-          CONNECT_COLLECTION_ID_USERS,
-          user.$id,
-          profileData
-        );
-      } else {
-        // Create new global profile
+      if (!profile) {
+        // Self-Healing: Create if missing
+        console.log('[Identity] Creating global profile for:', user.$id);
         await databases.createDocument(
           CONNECT_DATABASE_ID,
           CONNECT_COLLECTION_ID_USERS,
           user.$id,
           {
             ...profileData,
-            createdAt: new Date().toISOString(),
+            createdAt: now,
             appsActive: ['id'],
           }
         );
+      } else {
+        // Self-Healing: Fix malformed or non-discoverable data
+        const needsFix = 
+          profile.username !== username || 
+          !profile.privacySettings || 
+          profile.privacySettings.includes('"public":false');
+
+        if (needsFix) {
+          console.log('[Identity] Healing global profile for:', user.$id);
+          await databases.updateDocument(
+            CONNECT_DATABASE_ID,
+            CONNECT_COLLECTION_ID_USERS,
+            user.$id,
+            profileData
+          );
+        }
       }
+
+      // 3. Keep Prefs in sync
+      if (prefs.username !== username) {
+        await account.updatePrefs({ ...prefs, username });
+      }
+
+      return username;
     } catch (error) {
-      console.error('[AppwriteService] Global profile sync failed:', error);
-      // Non-fatal
+      console.warn('[Identity] Global sync failed:', error);
+      return null;
     }
+  },
+
+  /**
+   * Syncs the user's discoverability and profile to the global ecosystem directory.
+   */
+  async syncGlobalProfile(user: any, prefs: any) {
+    return this.ensureGlobalProfile(user);
   },
 
   /**
