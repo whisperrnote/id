@@ -3,7 +3,7 @@
 import { colors } from '@/lib/colors';
 import { useColors } from '@/lib/theme-context';
 import { useState } from 'react';
-import { account } from '@/lib/appwrite';
+import { account, AppwriteService } from '@/lib/appwrite';
 import {
   Dialog,
   DialogTitle,
@@ -56,11 +56,16 @@ export default function EditUsernameModal({
       // 2. Update the username and last_username_edit timestamp in prefs
       // This allows all apps in the ecosystem to resolve the username instantly via account.get()
       const currentPrefs = await account.getPrefs();
-      await account.updatePrefs({
+      const updatedPrefs = {
         ...currentPrefs,
         username: newName.trim().toLowerCase(),
         last_username_edit: new Date().toISOString(),
-      });
+      };
+      await account.updatePrefs(updatedPrefs);
+
+      // 3. Sync to global directory
+      const user = await account.get();
+      await AppwriteService.syncGlobalProfile(user, updatedPrefs);
 
       onSuccess(newName.trim());
       onClose();

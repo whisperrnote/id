@@ -2,7 +2,7 @@
 
 import { colors } from '@/lib/colors';
 import { useState, useEffect } from 'react';
-import { account } from '@/lib/appwrite';
+import { account, AppwriteService } from '@/lib/appwrite';
 import { useTheme, useColors } from '@/lib/theme-context';
 import {
   Box,
@@ -25,6 +25,7 @@ interface PrefsData {
   sessionReminders?: boolean;
   dataCollection?: boolean;
   marketingEmails?: boolean;
+  publicProfile?: boolean;
 }
 
 interface PreferencesManagerProps {
@@ -77,6 +78,7 @@ export default function PreferencesManager({ onSave }: PreferencesManagerProps) 
     sessionReminders: true,
     dataCollection: false,
     marketingEmails: false,
+    publicProfile: true,
   });
 
   useEffect(() => {
@@ -97,6 +99,7 @@ export default function PreferencesManager({ onSave }: PreferencesManagerProps) 
         sessionReminders: appPrefs?.sessionReminders !== false,
         dataCollection: appPrefs?.dataCollection === true,
         marketingEmails: appPrefs?.marketingEmails === true,
+        publicProfile: appPrefs?.publicProfile !== false,
       });
     } catch (err) {
       setError((err as Error).message);
@@ -116,6 +119,13 @@ export default function PreferencesManager({ onSave }: PreferencesManagerProps) 
       setAllPrefs(updatedAllPrefs);
       
       await account.updatePrefs(updatedAllPrefs);
+
+      // Sync to global directory if discoverability changed
+      if (key === 'publicProfile' || key === 'language') {
+        const user = await account.get();
+        await AppwriteService.syncGlobalProfile(user, updatedAllPrefs);
+      }
+
       onSave?.();
     } catch (err) {
       setError((err as Error).message);
@@ -232,6 +242,47 @@ export default function PreferencesManager({ onSave }: PreferencesManagerProps) 
                   </MenuItem>
                 ))}
               </Select>
+            </Box>
+          </Stack>
+        </Box>
+
+        <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.1)' }} />
+
+        {/* Discoverability Settings */}
+        <Box>
+          <Typography sx={{ fontSize: '1.125rem', fontWeight: 600, mb: 2, color: 'white' }}>
+            Discoverability
+          </Typography>
+          <Stack spacing={2}>
+            <Box>
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                p: 2,
+                backgroundColor: dynamicColors.secondary,
+                borderRadius: '0.5rem',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+              }}
+            >
+              <Box>
+                <Typography sx={{ fontSize: '0.875rem', color: 'white' }}>
+                  Public Profile
+                </Typography>
+                <Typography sx={{ fontSize: '0.75rem', color: dynamicColors.foreground }}>
+                  Allow other users to find you by name or username
+                </Typography>
+              </Box>
+              <Switch
+                checked={prefs.publicProfile !== false}
+                onChange={(e) => updatePreference('publicProfile', e.target.checked)}
+                sx={{
+                  '& .MuiSwitch-switchBase.Mui-checked': { color: dynamicColors.primary },
+                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                    backgroundColor: dynamicColors.primary,
+                  },
+                }}
+              />
             </Box>
           </Stack>
         </Box>

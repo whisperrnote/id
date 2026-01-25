@@ -3,7 +3,7 @@
 import { colors, colorsDark } from '@/lib/colors';
 import { useColors, useTheme } from '@/lib/theme-context';
 import { useEffect, useState, Suspense } from 'react';
-import { account } from '@/lib/appwrite';
+import { account, AppwriteService } from '@/lib/appwrite';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSource } from '@/lib/source-context';
 import Topbar from '@/app/components/Topbar';
@@ -82,10 +82,28 @@ function SettingsContent() {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncSuccess, setSyncSuccess] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setSource, getBackUrl } = useSource();
   const appName = process.env.NEXT_PUBLIC_APP_NAME || 'Auth System';
+
+  const handleFixDiscoverability = async () => {
+    setSyncing(true);
+    setSyncSuccess(false);
+    try {
+      const userData = await account.get();
+      const prefs = await account.getPrefs();
+      await AppwriteService.syncGlobalProfile(userData, prefs);
+      setSyncSuccess(true);
+      setTimeout(() => setSyncSuccess(false), 3000);
+    } catch (err) {
+      setError('Failed to sync profile: ' + (err as Error).message);
+    } finally {
+      setSyncing(false);
+    }
+  };
   
   const borderColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
   const hoverBg = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
@@ -544,6 +562,42 @@ function SettingsContent() {
                     Copy
                   </Button>
                 </Box>
+              </Box>
+
+              <Typography sx={{ fontSize: { xs: '1.125rem', md: '1.375rem' }, fontWeight: 700, mb: 3, mt: 6 }}>Ecosystem Discoverability</Typography>
+              <Box
+                sx={{
+                  backgroundColor: dynamicColors.secondary,
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '0.75rem',
+                  boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3)',
+                  overflow: 'hidden',
+                  p: 3,
+                }}
+              >
+                <Typography sx={{ fontSize: '1rem', color: textColor, mb: 1, fontWeight: 600 }}>
+                  Sync Global Profile
+                </Typography>
+                <Typography sx={{ fontSize: '0.875rem', color: dynamicColors.foreground, mb: 3 }}>
+                  If other users cannot find you in Note or Connect, use this to force a refresh of your global ecosystem profile.
+                </Typography>
+                <Button
+                  onClick={handleFixDiscoverability}
+                  disabled={syncing}
+                  variant="outlined"
+                  sx={{
+                    borderColor: syncSuccess ? '#10b981' : dynamicColors.primary,
+                    color: syncSuccess ? '#10b981' : dynamicColors.primary,
+                    fontWeight: 700,
+                    '&:hover': {
+                      borderColor: syncSuccess ? '#059669' : '#ffd633',
+                      backgroundColor: 'rgba(249, 200, 6, 0.05)',
+                    }
+                  }}
+                >
+                  {syncing ? <CircularProgress size={20} sx={{ mr: 1 }} /> : null}
+                  {syncSuccess ? 'Profile Synced!' : 'Fix Discoverability'}
+                </Button>
               </Box>
             </Box>
           )}

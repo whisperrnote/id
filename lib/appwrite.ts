@@ -19,7 +19,69 @@ const account = new Account(client);
 const functions = new Functions(client);
 const databases = new Databases(client);
 
+// Ecosystem: WhisperrConnect (The Global Directory)
+export const CONNECT_DATABASE_ID = 'chat';
+export const CONNECT_COLLECTION_ID_USERS = 'users';
+
 export const AppwriteService = {
+  /**
+   * Syncs the user's discoverability and profile to the global ecosystem directory.
+   */
+  async syncGlobalProfile(user: any, prefs: any) {
+    if (!user?.$id) return;
+
+    try {
+      const isPublic = prefs?.publicProfile !== false;
+      const username = prefs?.username || user.name || user.email.split('@')[0];
+      const displayName = user.name || username;
+
+      // Try to get existing global profile
+      let profile;
+      try {
+        profile = await databases.getDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id);
+      } catch (e: any) {
+        if (e.code === 404) {
+          // Profile doesn't exist, create it if public or if we want to ensure it exists
+          profile = null;
+        } else {
+          throw e;
+        }
+      }
+
+      const profileData = {
+        username: username.toLowerCase().replace(/\s/g, ''),
+        displayName: displayName,
+        updatedAt: new Date().toISOString(),
+        privacySettings: JSON.stringify({ public: isPublic, searchable: isPublic }),
+        avatarUrl: prefs?.avatarUrl || null,
+      };
+
+      if (profile) {
+        await databases.updateDocument(
+          CONNECT_DATABASE_ID,
+          CONNECT_COLLECTION_ID_USERS,
+          user.$id,
+          profileData
+        );
+      } else {
+        // Create new global profile
+        await databases.createDocument(
+          CONNECT_DATABASE_ID,
+          CONNECT_COLLECTION_ID_USERS,
+          user.$id,
+          {
+            ...profileData,
+            createdAt: new Date().toISOString(),
+            appsActive: ['id'],
+          }
+        );
+      }
+    } catch (error) {
+      console.error('[AppwriteService] Global profile sync failed:', error);
+      // Non-fatal
+    }
+  },
+
   // Keychain management
   async createKeychainEntry(data: Omit<Keychain, "$id" | "$createdAt" | "$updatedAt">): Promise<Keychain> {
     const doc = await databases.createDocument(
