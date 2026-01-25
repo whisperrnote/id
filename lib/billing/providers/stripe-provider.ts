@@ -2,14 +2,22 @@ import { PaymentProvider, CheckoutSession } from '../provider-factory';
 import { PaymentMethod } from '../types';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2024-11-20.acacia',
-});
+let stripeInstance: Stripe | null = null;
+
+function getStripe() {
+  if (!stripeInstance) {
+    stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+      apiVersion: '2024-11-20.acacia',
+    });
+  }
+  return stripeInstance;
+}
 
 export class StripeProvider implements PaymentProvider {
   name = PaymentMethod.STRIPE;
 
   async createCheckoutSession(planId: string, userId: string): Promise<CheckoutSession> {
+    const stripe = getStripe();
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -33,6 +41,7 @@ export class StripeProvider implements PaymentProvider {
   }
 
   async verifyTransaction(transactionId: string): Promise<boolean> {
+    const stripe = getStripe();
     const session = await stripe.checkout.sessions.retrieve(transactionId);
     return session.payment_status === 'paid';
   }

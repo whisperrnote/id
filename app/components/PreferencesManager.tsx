@@ -254,7 +254,7 @@ export default function PreferencesManager({ onSave }: PreferencesManagerProps) 
             Discoverability
           </Typography>
           <Stack spacing={2}>
-            <Box>
+            <Box
               sx={{
                 display: 'flex',
                 justifyContent: 'space-between',

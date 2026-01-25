@@ -1,0 +1,52 @@
+
+> out@0.1.0 build
+> next build --turbopack
+
+   ▲ Next.js 15.5.3 (Turbopack)
+   - Experiments (use with caution):
+     · optimizePackageImports
+
+   Creating an optimized production build ...
+ ✓ Finished writing to disk in 60ms
+ ✓ Compiled successfully in 8.0s
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+   Generating static pages (0/22) ...
+   Generating static pages (5/22) 
+   Generating static pages (10/22) 
+   Generating static pages (16/22) 
+ ✓ Generating static pages (22/22)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                            Size  First Load JS
+┌ ○ /                               13.5 kB         174 kB
+├ ○ /_not-found                         0 B         151 kB
+├ ƒ /api/billing/checkout               0 B            0 B
+├ ƒ /api/connect/passkey/options        0 B            0 B
+├ ƒ /api/connect/passkey/verify         0 B            0 B
+├ ƒ /api/passkey/auth                   0 B            0 B
+├ ƒ /api/passkey/register               0 B            0 B
+├ ƒ /api/webauthn/auth/options          0 B            0 B
+├ ƒ /api/webauthn/auth/verify           0 B            0 B
+├ ƒ /api/webauthn/passkeys/delete       0 B            0 B
+├ ƒ /api/webauthn/passkeys/disable      0 B            0 B
+├ ƒ /api/webauthn/passkeys/enable       0 B            0 B
+├ ƒ /api/webauthn/passkeys/list         0 B            0 B
+├ ƒ /api/webauthn/passkeys/rename       0 B            0 B
+├ ƒ /api/webauthn/register/options      0 B            0 B
+├ ƒ /api/webauthn/register/verify       0 B            0 B
+├ ○ /login                          54.7 kB         215 kB
+├ ○ /settings                       88.6 kB         249 kB
+└ ○ /silent-check                     437 B         161 kB
++ First Load JS shared by all        152 kB
+  ├ chunks/2008ffcf9e5b170c.js        13 kB
+  ├ chunks/474c875672f2f5ad.js      29.3 kB
+  ├ chunks/db8f8797ab57ee2a.js      75.4 kB
+  └ other shared chunks (total)     34.3 kB
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
