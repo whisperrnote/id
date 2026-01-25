@@ -56,18 +56,14 @@ export const AppwriteService = {
       if (!username) username = `user_${user.$id.slice(0, 8)}`;
 
       const profilePicId = prefs?.profilePicId || user.profilePicId || null;
-      const profileData: any = {
+      const baseData: any = {
         username,
         displayName: user.name || username,
         updatedAt: new Date().toISOString(),
         walletAddress: prefs?.walletEth || prefs?.walletAddress || null,
-        bio: prefs?.bio || profile?.bio || "",
+        bio: prefs?.bio || (profile ? profile.bio : ""),
         privacySettings: JSON.stringify({ public: true, searchable: true })
       };
-
-      if (profilePicId) {
-        profileData.avatarFileId = profilePicId;
-      }
 
       const permissions = [
         'read("any")',
@@ -75,37 +71,43 @@ export const AppwriteService = {
         `delete("user:${user.$id}")`
       ];
 
+      const attempts = [
+        { avatarFileId: profilePicId },
+        { profilePicId: profilePicId },
+        {}
+      ];
+
       // 3. Selective Update: Only write if data is missing or different
       if (!profile) {
-        try {
-          await databases.createDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id, {
-            ...profileData,
-            createdAt: new Date().toISOString()
-          }, permissions);
-        } catch (e: any) {
-          if (e.message?.includes('avatarFileId')) {
-            delete profileData.avatarFileId;
-            profileData.profilePicId = profilePicId;
-            await databases.createDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id, {
-              ...profileData,
-              createdAt: new Date().toISOString()
-            }, permissions);
-          } else throw e;
+        for (const attempt of attempts) {
+          try {
+            const payload = { ...baseData, createdAt: new Date().toISOString(), ...attempt };
+            await databases.createDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id, payload, permissions);
+            break;
+          } catch (e: any) {
+            const errStr = JSON.stringify(e).toLowerCase();
+            if (errStr.includes('unknown attribute') || errStr.includes('invalid document structure')) {
+              continue;
+            }
+            throw e;
+          }
         }
       } else {
-        const needsHealing = profile.username !== username || 
-                           (profilePicId && !profile.avatarFileId && !profile.profilePicId) ||
-                           !profile.privacySettings;
+        const needsHealing = profile.username !== username || !profile.privacySettings;
         
         if (needsHealing) {
-          try {
-            await databases.updateDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id, profileData);
-          } catch (e: any) {
-            if (e.message?.includes('avatarFileId')) {
-              delete profileData.avatarFileId;
-              profileData.profilePicId = profilePicId;
-              await databases.updateDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id, profileData);
-            } else throw e;
+          for (const attempt of attempts) {
+            try {
+              const payload = { ...baseData, ...attempt };
+              await databases.updateDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id, payload);
+              break;
+            } catch (e: any) {
+              const errStr = JSON.stringify(e).toLowerCase();
+              if (errStr.includes('unknown attribute') || errStr.includes('invalid document structure')) {
+                continue;
+              }
+              throw e;
+            }
           }
         }
       }
