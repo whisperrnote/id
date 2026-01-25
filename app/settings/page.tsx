@@ -84,22 +84,56 @@ function SettingsContent() {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [syncSuccess, setSyncSuccess] = useState(false);
+  const [profileStatus, setProfileStatus] = useState<{ label: string, color: string } | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setSource, getBackUrl } = useSource();
   const appName = process.env.NEXT_PUBLIC_APP_NAME || 'Auth System';
 
+  useEffect(() => {
+    if (user?.userId) {
+      checkInitialStatus();
+    }
+  }, [user?.userId, user?.name]);
+
+  const checkInitialStatus = async () => {
+    try {
+      const status = await AppwriteService.getGlobalProfileStatus(user!.userId);
+      if (!status.exists) {
+        const suggestion = user!.email.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '');
+        setProfileStatus({ 
+          label: `Profile missing from directory. Clicking below will link you as @${suggestion}.`, 
+          color: dynamicColors.primary 
+        });
+      } else {
+        setProfileStatus({ 
+          label: `Correctly linked in directory as @${status.profile.username}`, 
+          color: '#10b981' 
+        });
+      }
+    } catch (e) {
+      setProfileStatus({ label: 'Unable to verify directory status.', color: '#ef4444' });
+    }
+  };
+
   const handleFixDiscoverability = async () => {
     setSyncing(true);
     setSyncSuccess(false);
+    setError(null);
     try {
       const userData = await account.get();
-      const prefs = await account.getPrefs();
-      await AppwriteService.syncGlobalProfile(userData, prefs);
+      const result = await AppwriteService.ensureGlobalProfile(userData);
       setSyncSuccess(true);
-      setTimeout(() => setSyncSuccess(false), 3000);
-    } catch (err) {
-      setError('Failed to sync profile: ' + (err as Error).message);
+      setProfileStatus({ 
+        label: `Successfully synced! Your global username is now @${result.username}`, 
+        color: '#10b981' 
+      });
+      // Refresh user to update the UI username field immediately
+      setUser(prev => prev ? { ...prev, name: result.username } : null);
+      setTimeout(() => setSyncSuccess(false), 5000);
+    } catch (err: any) {
+      console.error('Manual sync failed:', err);
+      setError(`Sync failed: ${err.message || 'Check your connection.'}`);
     } finally {
       setSyncing(false);
     }
@@ -581,6 +615,13 @@ function SettingsContent() {
                 <Typography sx={{ fontSize: '0.875rem', color: dynamicColors.foreground, mb: 3 }}>
                   If other users cannot find you in Note or Connect, use this to force a refresh of your global ecosystem profile.
                 </Typography>
+                
+                {profileStatus && (
+                  <Typography sx={{ fontSize: '0.875rem', color: profileStatus.color, mb: 2, fontWeight: 700 }}>
+                    {profileStatus.label}
+                  </Typography>
+                )}
+
                 <Button
                   onClick={handleFixDiscoverability}
                   disabled={syncing}

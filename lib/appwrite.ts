@@ -3,17 +3,14 @@ import { Keychain } from '@/types/appwrite';
 
 const client = new Client();
 
+const FALLBACK_PROJECT_ID = '67fe9627001d97e37ef3';
 const APPWRITE_DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID || "main";
 const APPWRITE_COLLECTION_KEYCHAIN_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_KEYCHAIN_ID || "keychain";
 const APPWRITE_COLLECTION_USERS_ID = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_USERS_ID || "users";
 
-// These values should be provided via environment variables at runtime
-if (process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT) {
-  client.setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT);
-}
-if (process.env.NEXT_PUBLIC_APPWRITE_PROJECT) {
-  client.setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT);
-}
+// Ensure connection even if env is missing
+client.setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || 'https://fra.cloud.appwrite.io/v1');
+client.setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT || FALLBACK_PROJECT_ID);
 
 const account = new Account(client);
 const functions = new Functions(client);
@@ -29,76 +26,73 @@ export const AppwriteService = {
    * global ecosystem directory (chat.users).
    */
   async ensureGlobalProfile(user: any) {
-    if (!user?.$id) return null;
+    if (!user?.$id) throw new Error("No active session found");
+
+    console.log('[Identity] Starting global sync for:', user.$id);
+
+    // 1. Get or Generate Username
+    const prefs = await account.getPrefs();
+    // Prioritize prefs, then name, then email
+    let username = prefs?.username || user.name || user.email.split('@')[0];
+    
+    // Strict Normalization: lowercase, no @, alphanumeric + underscores, max 50 chars
+    username = String(username).toLowerCase().replace(/^@/, '').replace(/[^a-z0-9_]/g, '').slice(0, 50);
+    if (!username) username = `user_${user.$id.slice(0, 8)}`;
+
+    // 2. Force Write to Global Table
+    const now = new Date().toISOString();
+    const profileData = {
+      username,
+      displayName: user.name || username,
+      updatedAt: now,
+      avatarUrl: prefs?.avatarUrl || user.avatarUrl || null,
+      walletAddress: prefs?.walletEth || null,
+      bio: prefs?.bio || ""
+    };
 
     try {
-      // 1. Get or Generate Username
-      const prefs = await account.getPrefs();
-      let username = prefs?.username || user.name || user.email.split('@')[0];
-      
-      // Strict Normalization: lowercase, no @, alphanumeric + underscores
-      username = username.toLowerCase().replace(/^@/, '').replace(/[^a-z0-9_]/g, '');
-      if (!username) username = `user_${user.$id.slice(0, 8)}`;
-
-      // 2. Check for existing document
-      let profile;
+      // Check if exists first to decide Create vs Update
+      let existingProfile = null;
       try {
-        profile = await databases.getDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id);
+        existingProfile = await databases.getDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id);
       } catch (e: any) {
         if (e.code !== 404) throw e;
-        profile = null;
       }
 
-      const now = new Date().toISOString();
-      const profileData = {
-        username,
-        displayName: user.name || username,
-        updatedAt: now,
-        privacySettings: JSON.stringify({ public: true, searchable: true }),
-        avatarUrl: prefs?.avatarUrl || user.avatarUrl || null,
-        walletAddress: prefs?.walletEth || null,
-      };
-
-      if (!profile) {
-        // Self-Healing: Create if missing
-        console.log('[Identity] Creating global profile for:', user.$id);
+      if (!existingProfile) {
         await databases.createDocument(
           CONNECT_DATABASE_ID,
           CONNECT_COLLECTION_ID_USERS,
           user.$id,
-          {
-            ...profileData,
-            createdAt: now,
-            appsActive: ['id'],
-          }
+          { ...profileData, createdAt: now }
         );
       } else {
-        // Self-Healing: Fix malformed or non-discoverable data
-        const needsFix = 
-          profile.username !== username || 
-          !profile.privacySettings || 
-          profile.privacySettings.includes('"public":false');
-
-        if (needsFix) {
-          console.log('[Identity] Healing global profile for:', user.$id);
-          await databases.updateDocument(
-            CONNECT_DATABASE_ID,
-            CONNECT_COLLECTION_ID_USERS,
-            user.$id,
-            profileData
-          );
-        }
+        await databases.updateDocument(
+          CONNECT_DATABASE_ID,
+          CONNECT_COLLECTION_ID_USERS,
+          user.$id,
+          profileData
+        );
       }
 
-      // 3. Keep Prefs in sync
+      // 3. Force Sync back to Account Prefs (The UI source)
       if (prefs.username !== username) {
         await account.updatePrefs({ ...prefs, username });
       }
 
-      return username;
-    } catch (error) {
-      console.warn('[Identity] Global sync failed:', error);
-      return null;
+      return { success: true, username };
+    } catch (syncErr: any) {
+      console.error('[Identity] Critical Sync Failure:', syncErr);
+      throw syncErr;
+    }
+  },
+
+  async getGlobalProfileStatus(userId: string) {
+    try {
+      const profile = await databases.getDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, userId);
+      return { exists: true, profile };
+    } catch (e: any) {
+      return { exists: false, error: e.code === 404 ? 'Not Found' : e.message };
     }
   },
 
