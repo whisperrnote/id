@@ -14,9 +14,10 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  LinearProgress
+  LinearProgress,
+  Divider
 } from '@mui/material';
-import { Lock, Shield, Key, CheckCircle, AlertTriangle } from '@mui/icons-material';
+import { Lock, Shield, Key, CheckCircle } from '@mui/icons-material';
 import { ecosystemSecurity } from '@/lib/ecosystem/security';
 import { AppwriteService } from '@/lib/appwrite';
 import { useTheme } from '@/lib/theme-context';
