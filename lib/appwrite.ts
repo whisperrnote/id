@@ -59,19 +59,29 @@ export const AppwriteService = {
         username,
         displayName: user.name || username,
         updatedAt: new Date().toISOString(),
-        avatarUrl: prefs?.avatarUrl || user.avatarUrl || null,
-        walletAddress: prefs?.walletEth || null,
-        bio: prefs?.bio || ""
+        profilePicId: prefs?.profilePicId || user.profilePicId || null,
+        walletAddress: prefs?.walletEth || prefs?.walletAddress || null,
+        bio: prefs?.bio || profile?.bio || "",
+        privacySettings: JSON.stringify({ public: true, searchable: true })
       };
+
+      const permissions = [
+        'read("any")',
+        `update("user:${user.$id}")`,
+        `delete("user:${user.$id}")`
+      ];
 
       // 3. Selective Update: Only write if data is missing or different
       if (!profile) {
         await databases.createDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id, {
           ...profileData,
           createdAt: new Date().toISOString()
-        });
+        }, permissions);
       } else {
-        const needsHealing = profile.username !== username || !profile.updatedAt; // Add more diff checks if needed
+        const needsHealing = profile.username !== username || 
+                           !profile.profilePicId && profileData.profilePicId ||
+                           !profile.privacySettings;
+        
         if (needsHealing) {
           await databases.updateDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id, profileData);
         }
