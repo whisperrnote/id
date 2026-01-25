@@ -14,6 +14,7 @@ import {
   Stack,
   Typography,
   Divider,
+  alpha,
 } from '@mui/material';
 import { Logout, Settings, ArrowBack, Fingerprint, History, Apps } from '@mui/icons-material';
 import EcosystemPortal from './EcosystemPortal';
