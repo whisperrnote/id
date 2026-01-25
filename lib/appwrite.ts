@@ -59,7 +59,7 @@ export const AppwriteService = {
         username,
         displayName: user.name || username,
         updatedAt: new Date().toISOString(),
-        profilePicId: prefs?.profilePicId || user.profilePicId || null,
+        avatarFileId: prefs?.profilePicId || user.profilePicId || null,
         walletAddress: prefs?.walletEth || prefs?.walletAddress || null,
         bio: prefs?.bio || profile?.bio || "",
         privacySettings: JSON.stringify({ public: true, searchable: true })
@@ -79,7 +79,7 @@ export const AppwriteService = {
         }, permissions);
       } else {
         const needsHealing = profile.username !== username || 
-                           !profile.profilePicId && profileData.profilePicId ||
+                           !profile.avatarFileId && profileData.avatarFileId ||
                            !profile.privacySettings;
         
         if (needsHealing) {
