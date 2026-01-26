@@ -72,7 +72,7 @@ export const AppwriteService = {
       ];
 
       // Order of preference for avatar field names in the ecosystem
-      const avatarFieldCandidates = ['avatarFileId', 'profilePicId', 'avatarUrl'];
+      const avatarFieldCandidates = ['profilePicId', 'avatarFileId', 'avatarUrl'];
 
       // 3. Selective Update: Only write if data is missing or different
       if (!profile) {
