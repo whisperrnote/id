@@ -18,6 +18,7 @@ import SessionsManager from '@/app/components/SessionsManager';
 import ActivityLogs from '@/app/components/ActivityLogs';
 import ConnectedIdentities from '@/app/components/ConnectedIdentities';
 import MasterPassManager from '@/app/components/MasterPassManager';
+import ProfileManager from '@/app/components/ProfileManager';
 import { listPasskeys } from '@/lib/passkey-client-utils';
 import {
   Container,
@@ -480,59 +481,7 @@ function SettingsContent() {
           {/* Profile Section */}
           {activeTab === 'profile' && (
             <Box>
-              <Typography sx={{ fontSize: { xs: '1.125rem', md: '1.375rem' }, fontWeight: 700, mb: 1 }}>Username</Typography>
-              <Typography sx={{ fontSize: '0.875rem', color: dynamicColors.foreground, mb: 2 }}>
-                This is your public identifier across the ecosystem.
-              </Typography>
-              <Box
-                sx={{
-                  backgroundColor: dynamicColors.secondary,
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  borderRadius: '0.75rem',
-                  boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3)',
-                  overflow: 'hidden',
-                }}
-              >
-                <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    p: '1rem',
-                    minHeight: '3.5rem',
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
-                    <Typography sx={{ fontSize: '1rem', color: textColor, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {user.name || user.email.split('@')[0]}
-                    </Typography>
-                  </Box>
-                  <Button
-                    onClick={() => setEditUsernameModalOpen(true)}
-                    sx={{
-                      color: dynamicColors.primary,
-                      fontSize: '1rem',
-                      fontWeight: 500,
-                      textTransform: 'none',
-                      borderRadius: '0.5rem',
-                      '&:hover': { backgroundColor: 'rgba(249, 200, 6, 0.1)', textDecoration: 'underline' },
-                    }}
-                  >
-                    Edit
-                  </Button>
-                </Box>
-              </Box>
-              
-              {user.lastUsernameEdit && (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 1, ml: 1 }}>
-                  <Tooltip title="This is when you last updated your public name." arrow>
-                    <InfoOutlined sx={{ fontSize: '0.875rem', color: dynamicColors.foreground, cursor: 'help' }} />
-                  </Tooltip>
-                  <Typography sx={{ fontSize: '0.75rem', color: dynamicColors.foreground }}>
-                    Last edited on {new Date(user.lastUsernameEdit).toLocaleDateString()} at {new Date(user.lastUsernameEdit).toLocaleTimeString()}
-                  </Typography>
-                </Box>
-              )}
+              <ProfileManager />
 
               <Typography sx={{ fontSize: { xs: '1.125rem', md: '1.375rem' }, fontWeight: 700, mb: 3, mt: 6 }}>Email</Typography>
               <Box
