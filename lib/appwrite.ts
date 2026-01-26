@@ -71,26 +71,21 @@ export const AppwriteService = {
         `delete("user:${user.$id}")`
       ];
 
-      const attempts = [
-        { avatarFileId: profilePicId },
-        { profilePicId: profilePicId },
-        { avatarUrl: profilePicId },
-        {}
-      ];
+      // Order of preference for avatar field names in the ecosystem
+      const avatarFieldCandidates = ['avatarFileId', 'profilePicId', 'avatarUrl'];
 
       // 3. Selective Update: Only write if data is missing or different
       if (!profile) {
-        for (const attempt of attempts) {
+        for (const field of avatarFieldCandidates) {
           try {
             const payload = { ...baseData, createdAt: new Date().toISOString() };
-            const key = Object.keys(attempt)[0];
-            if (key && profilePicId) payload[key] = profilePicId;
+            if (profilePicId) payload[field] = profilePicId;
 
             await databases.createDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id, payload, permissions);
             break;
           } catch (e: any) {
-            const errStr = (e.message || JSON.stringify(e)).toLowerCase();
-            if (errStr.includes('unknown attribute') || errStr.includes('invalid document structure')) {
+            const msg = (e.message || JSON.stringify(e)).toLowerCase();
+            if (msg.includes('unknown attribute') || msg.includes('invalid document structure')) {
               continue;
             }
             throw e;
@@ -100,17 +95,16 @@ export const AppwriteService = {
         const needsHealing = profile.username !== username || !profile.privacySettings;
         
         if (needsHealing) {
-          for (const attempt of attempts) {
+          for (const field of avatarFieldCandidates) {
             try {
               const payload = { ...baseData };
-              const key = Object.keys(attempt)[0];
-              if (key && profilePicId) payload[key] = profilePicId;
+              if (profilePicId) payload[field] = profilePicId;
 
               await databases.updateDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id, payload);
               break;
             } catch (e: any) {
-              const errStr = (e.message || JSON.stringify(e)).toLowerCase();
-              if (errStr.includes('unknown attribute') || errStr.includes('invalid document structure')) {
+              const msg = (e.message || JSON.stringify(e)).toLowerCase();
+              if (msg.includes('unknown attribute') || msg.includes('invalid document structure')) {
                 continue;
               }
               throw e;
