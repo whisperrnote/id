@@ -74,6 +74,7 @@ export const AppwriteService = {
       const attempts = [
         { avatarFileId: profilePicId },
         { profilePicId: profilePicId },
+        { avatarUrl: profilePicId },
         {}
       ];
 
@@ -81,11 +82,14 @@ export const AppwriteService = {
       if (!profile) {
         for (const attempt of attempts) {
           try {
-            const payload = { ...baseData, createdAt: new Date().toISOString(), ...attempt };
+            const payload = { ...baseData, createdAt: new Date().toISOString() };
+            const key = Object.keys(attempt)[0];
+            if (key && profilePicId) payload[key] = profilePicId;
+
             await databases.createDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id, payload, permissions);
             break;
           } catch (e: any) {
-            const errStr = JSON.stringify(e).toLowerCase();
+            const errStr = (e.message || JSON.stringify(e)).toLowerCase();
             if (errStr.includes('unknown attribute') || errStr.includes('invalid document structure')) {
               continue;
             }
@@ -98,11 +102,14 @@ export const AppwriteService = {
         if (needsHealing) {
           for (const attempt of attempts) {
             try {
-              const payload = { ...baseData, ...attempt };
+              const payload = { ...baseData };
+              const key = Object.keys(attempt)[0];
+              if (key && profilePicId) payload[key] = profilePicId;
+
               await databases.updateDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id, payload);
               break;
             } catch (e: any) {
-              const errStr = JSON.stringify(e).toLowerCase();
+              const errStr = (e.message || JSON.stringify(e)).toLowerCase();
               if (errStr.includes('unknown attribute') || errStr.includes('invalid document structure')) {
                 continue;
               }
